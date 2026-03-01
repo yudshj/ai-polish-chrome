@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.sync.get({
     apiUrl: 'https://openrouter.ai/api/v1/chat/completions',
     apiKey: '',
-    model: 'qwen/qwen3.5-122b-a10b'
+    model: 'google/gemini-3-flash-preview'
   }, (settings) => {
     const keyEl = document.getElementById('keyStatus');
     if (settings.apiKey) {

@@ -19,9 +19,9 @@ AI-powered text polishing for any input field in your browser. Like Grammarly, b
 
 | Model | ID |
 |-------|-----|
-| Qwen 3.5 (default) | `qwen/qwen3.5-122b-a10b` |
+| Gemini 3 Flash (default) | `google/gemini-3-flash-preview` |
 | Gemini 3.1 Pro | `google/gemini-3.1-pro-preview` |
-| Gemini 3 Flash | `google/gemini-3-flash-preview` |
+| Qwen 3.5 | `qwen/qwen3.5-122b-a10b` |
 | GPT-5.2 | `openai/gpt-5.2` |
 | Claude Opus 4.6 | `anthropic/claude-opus-4.6` |
 | Custom | Any OpenAI-compatible model ID |

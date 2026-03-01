@@ -20,7 +20,7 @@ A Chrome extension that adds AI-powered text polishing to any text input field i
 - Use OpenRouter API (or any OpenAI-compatible API endpoint)
 - Auto-detect the input language and output in the same language by default
 - If a target language is selected, output in that language
-- Default model: `qwen/qwen3.5-122b-a10b`
+- Default model: `google/gemini-3-flash-preview`
 - **Streaming (SSE)**: Text appears gradually via typewriter animation
 - **Typing cursor**: A spinning gradient ring follows the end of the generated text in real-time
 
@@ -35,9 +35,9 @@ A Chrome extension that adds AI-powered text polishing to any text input field i
 - **API Key**: Secret key input (password field)
 - **API Test Button**: Below API key, tests API connection (sends `max_tokens: 1` request to verify API URL + key + model work)
 - **Model Selection**: Dropdown with preset models:
-  - `qwen/qwen3.5-122b-a10b` (default)
+  - `google/gemini-3-flash-preview` (default)
   - `google/gemini-3.1-pro-preview`
-  - `google/gemini-3-flash-preview`
+  - `qwen/qwen3.5-122b-a10b`
   - `openai/gpt-5.2`
   - `anthropic/claude-opus-4.6`
   - Support custom model input
