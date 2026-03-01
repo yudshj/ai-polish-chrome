@@ -1,0 +1,220 @@
+/* Floating button */
+.aip-btn {
+  position: absolute;
+  z-index: 2147483647;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #6C63FF;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(108, 99, 255, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  padding: 0;
+  pointer-events: auto;
+}
+
+.aip-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 14px rgba(108, 99, 255, 0.5);
+}
+
+.aip-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Panel */
+.aip-panel {
+  position: absolute;
+  z-index: 2147483647;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  padding: 14px;
+  width: 220px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  color: #333;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 0.18s ease, visibility 0.18s ease, transform 0.18s ease;
+  pointer-events: auto;
+}
+
+.aip-panel.aip-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.aip-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.aip-panel-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.aip-panel-gear {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #aaa;
+  transition: background 0.15s, color 0.15s;
+}
+
+.aip-panel-gear:hover {
+  background: #f0f0f2;
+  color: #6C63FF;
+}
+
+.aip-panel-gear svg {
+  width: 14px;
+  height: 14px;
+}
+
+.aip-panel select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #333;
+  background: #fafafa;
+  outline: none;
+  cursor: pointer;
+  margin-bottom: 10px;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.aip-panel select:focus {
+  border-color: #6C63FF;
+}
+
+.aip-polish-btn {
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6C63FF, #8B5CF6);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.aip-polish-btn:hover {
+  opacity: 0.9;
+}
+
+.aip-polish-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.aip-polish-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Loading spinner */
+.aip-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: aip-spin 0.6s linear infinite;
+}
+
+@keyframes aip-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Status */
+.aip-status {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #e74c3c;
+  word-break: break-word;
+}
+
+.aip-status.aip-success {
+  color: #27ae60;
+}
+
+/* Undo bar */
+.aip-undo-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: #f0fdf4;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #27ae60;
+}
+
+.aip-undo-btn {
+  background: none;
+  border: 1px solid #27ae60;
+  color: #27ae60;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.aip-undo-btn:hover {
+  background: #27ae60;
+  color: #fff;
+}
+
+/* Typing cursor — spinning gradient ring */
+.aip-typing-cursor {
+  position: absolute;
+  z-index: 2147483647;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0%, #6C63FF 30%, #8B5CF6 60%, transparent 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+  animation: aip-cursor-spin 0.8s linear infinite;
+  display: none;
+}
+
+@keyframes aip-cursor-spin {
+  to { transform: rotate(360deg); }
+}

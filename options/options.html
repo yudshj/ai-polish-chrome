@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title data-i18n="optTitle">AI Polish Settings</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      color: #333;
+      background: #f5f5f7;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .header-logo {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-size: 22px;
+      background: linear-gradient(135deg, #6C63FF, #8B5CF6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      flex: 1;
+    }
+    .github-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #24292e;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .github-btn:hover { opacity: 0.8; }
+    .github-btn svg { width: 20px; height: 20px; fill: #fff; }
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #222;
+    }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    input[type="text"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #333;
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #6C63FF;
+      background: #fff;
+    }
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+      font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .model-row {
+      display: flex;
+      gap: 8px;
+    }
+    .model-row select { flex: 1; }
+    .model-row input { flex: 1; }
+    .hint {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+    /* API test */
+    .api-test-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .test-btn {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6C63FF;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .test-btn:hover { background: #f0edff; border-color: #6C63FF; }
+    .test-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .test-result {
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .test-result.success { color: #2e7d32; }
+    .test-result.error { color: #e74c3c; }
+    /* Model info widget */
+    .model-info-box {
+      margin-top: 10px;
+      background: #f8f9fa;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+    .model-info-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .model-info-header span {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .fetch-btn {
+      padding: 3px 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 11px;
+      color: #6C63FF;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .fetch-btn:hover { background: #f0edff; border-color: #6C63FF; }
+    .fetch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .model-info-body {
+      display: none;
+      margin-top: 8px;
+    }
+    .model-info-body.visible { display: block; }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #555;
+      padding: 3px 0;
+    }
+    .info-row .info-label { color: #888; }
+    .info-row .info-value { font-weight: 600; color: #333; }
+    .info-error {
+      font-size: 11px;
+      color: #e74c3c;
+      margin-top: 6px;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary {
+      background: linear-gradient(135deg, #6C63FF, #8B5CF6);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #555;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #333;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+        <defs>
+          <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6C63FF"/>
+            <stop offset="100%" stop-color="#8B5CF6"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#g)" d="M50 8 L56 36 Q58 42 64 44 L92 50 L64 56 Q58 58 56 64 L50 92 L44 64 Q42 58 36 56 L8 50 L36 44 Q42 42 44 36 Z"/>
+        <circle fill="url(#g)" cx="76" cy="20" r="5"/>
+        <circle fill="url(#g)" cx="24" cy="76" r="3.5"/>
+      </svg>
+      <h1 id="headerTitle"></h1>
+      <a class="github-btn" id="githubLink" href="https://github.com/yudshj/ai-polish-chrome" target="_blank" rel="noopener noreferrer" title="GitHub">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      </a>
+    </div>
+
+    <!-- API Config -->
+    <div class="card">
+      <div class="card-title" id="cardApiConfig"></div>
+
+      <div class="field">
+        <label id="labelApiUrl"></label>
+        <input type="text" id="apiUrl" placeholder="https://openrouter.ai/api/v1/chat/completions">
+        <div class="hint" id="hintApiUrl"></div>
+      </div>
+
+      <div class="field">
+        <label id="labelApiKey"></label>
+        <input type="password" id="apiKey" placeholder="sk-or-...">
+        <div class="api-test-row">
+          <button class="test-btn" id="testApi"></button>
+          <span class="test-result" id="testResult"></span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label id="labelModel"></label>
+        <div class="model-row">
+          <select id="modelSelect">
+            <option value="qwen/qwen3.5-122b-a10b">qwen/qwen3.5-122b-a10b</option>
+            <option value="google/gemini-3.1-pro-preview">google/gemini-3.1-pro-preview</option>
+            <option value="google/gemini-3-flash-preview">google/gemini-3-flash-preview</option>
+            <option value="openai/gpt-5.2">openai/gpt-5.2</option>
+            <option value="anthropic/claude-opus-4.6">anthropic/claude-opus-4.6</option>
+            <option value="custom" id="optCustomModel"></option>
+          </select>
+          <input type="text" id="customModel" placeholder="org/model-name" style="display:none">
+        </div>
+
+        <!-- Model Info Widget -->
+        <div class="model-info-box">
+          <div class="model-info-header">
+            <span id="modelInfoLabel"></span>
+            <button class="fetch-btn" id="fetchModelInfo"></button>
+          </div>
+          <div class="model-info-body" id="modelInfoBody">
+            <div class="info-row">
+              <span class="info-label" id="infoCtxLabel"></span>
+              <span class="info-value" id="infoCtxValue">—</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label" id="infoPromptLabel"></span>
+              <span class="info-value" id="infoPromptValue">—</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label" id="infoCompLabel"></span>
+              <span class="info-value" id="infoCompValue">—</span>
+            </div>
+          </div>
+          <div class="info-error" id="modelInfoError" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt -->
+    <div class="card">
+      <div class="card-title" id="cardPrompt"></div>
+      <div class="field">
+        <label id="labelPrompt"></label>
+        <textarea id="prompt"></textarea>
+        <div class="hint" id="hintPrompt"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="resetPrompt"></button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="save"></button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>
