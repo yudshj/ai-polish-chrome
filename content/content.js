@@ -504,8 +504,12 @@
   // ---- Focus / blur tracking ----
 
   document.addEventListener('focusin', (e) => {
-    if (isEditableElement(e.target)) {
-      showButton(e.target);
+    // composedPath() traverses shadow DOM boundaries to find the actual editable element
+    const target = e.composedPath().find(
+      el => el instanceof Element && isEditableElement(el)
+    );
+    if (target) {
+      showButton(target);
     }
   }, true);
 

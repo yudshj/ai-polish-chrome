@@ -13,7 +13,8 @@ async function registerContentScripts() {
     matches: ['*://*/*'],
     js: ['content/content.js'],
     css: ['content/content.css'],
-    runAt: 'document_idle'
+    runAt: 'document_idle',
+    allFrames: true
   }]);
 }
 

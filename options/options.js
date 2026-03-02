@@ -22,7 +22,8 @@ const PRESET_MODELS = [
   'google/gemini-3.1-pro-preview',
   'qwen/qwen3.5-122b-a10b',
   'openai/gpt-5.2',
-  'anthropic/claude-opus-4.6'
+  'anthropic/claude-opus-4.6',
+  'anthropic/claude-sonnet-4.6'
 ];
 
 const $apiUrl = document.getElementById('apiUrl');
