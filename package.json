@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "devDependencies": {
+    "jest": "^29",
+    "puppeteer": "^24"
+  },
+  "scripts": {
+    "test": "jest --runInBand"
+  }
+}
