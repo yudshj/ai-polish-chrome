@@ -5,7 +5,6 @@
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "permissions": ["storage", "activeTab"],
-  "host_permissions": ["https://*/*", "http://*/*"],
   "background": {
     "service_worker": "background/background.js"
   },
