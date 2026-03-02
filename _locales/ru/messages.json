@@ -1,0 +1,143 @@
+{
+  "extName": {
+    "message": "AI Polish"
+  },
+  "extDescription": {
+    "message": "Улучшение текста с помощью ИИ для любого поля ввода в браузере"
+  },
+  "popupApiKey": {
+    "message": "API-ключ"
+  },
+  "popupModel": {
+    "message": "Модель"
+  },
+  "popupApiUrl": {
+    "message": "URL API"
+  },
+  "popupNotSet": {
+    "message": "Не настроено"
+  },
+  "popupConfigured": {
+    "message": "Настроено"
+  },
+  "popupOpenSettings": {
+    "message": "Открыть настройки"
+  },
+  "popupSettings": {
+    "message": "Настройки"
+  },
+  "panelTargetLang": {
+    "message": "Целевой язык"
+  },
+  "panelLangAuto": {
+    "message": "Авто (сохранить исходный язык)"
+  },
+  "panelPolish": {
+    "message": "Улучшить"
+  },
+  "panelPolishing": {
+    "message": "Улучшение..."
+  },
+  "panelPolished": {
+    "message": "Улучшено!"
+  },
+  "panelUndo": {
+    "message": "Отменить"
+  },
+  "panelNoText": {
+    "message": "Нет текста для улучшения"
+  },
+  "optTitle": {
+    "message": "Настройки AI Polish"
+  },
+  "optApiConfig": {
+    "message": "Настройки API"
+  },
+  "optApiUrl": {
+    "message": "URL API"
+  },
+  "optApiUrlHint": {
+    "message": "OpenRouter или любой совместимый с OpenAI endpoint"
+  },
+  "optApiKey": {
+    "message": "API-ключ"
+  },
+  "optTestApi": {
+    "message": "Тест API"
+  },
+  "optTestTesting": {
+    "message": "Тестирование..."
+  },
+  "optTestSuccess": {
+    "message": "Подключение успешно!"
+  },
+  "optTestFail": {
+    "message": "Ошибка подключения"
+  },
+  "optTestNoKey": {
+    "message": "Сначала введите API-ключ"
+  },
+  "optModel": {
+    "message": "Модель"
+  },
+  "optModelCustom": {
+    "message": "Другая..."
+  },
+  "optModelInfo": {
+    "message": "Информация о модели"
+  },
+  "optModelInfoFetch": {
+    "message": "Получить"
+  },
+  "optModelInfoFetching": {
+    "message": "Загрузка..."
+  },
+  "optModelInfoContext": {
+    "message": "Длина контекста"
+  },
+  "optModelInfoPromptCost": {
+    "message": "Стоимость ввода"
+  },
+  "optModelInfoCompletionCost": {
+    "message": "Стоимость вывода"
+  },
+  "optModelInfoPerMTokens": {
+    "message": "/ 1М токенов"
+  },
+  "optModelInfoError": {
+    "message": "Не удалось получить информацию о модели"
+  },
+  "optPromptTemplate": {
+    "message": "Шаблон промпта"
+  },
+  "optSystemPrompt": {
+    "message": "Системный промпт"
+  },
+  "optPromptHint": {
+    "message": "Используйте {{targetLanguage}} и {{text}} как переменные"
+  },
+  "optResetPrompt": {
+    "message": "Сбросить по умолчанию"
+  },
+  "optSave": {
+    "message": "Сохранить"
+  },
+  "optSaved": {
+    "message": "Настройки сохранены!"
+  },
+  "optPromptReset": {
+    "message": "Промпт сброшен по умолчанию"
+  },
+  "optSpecifyModel": {
+    "message": "Укажите модель"
+  },
+  "optGithub": {
+    "message": "GitHub"
+  },
+  "popupPermText": {
+    "message": "AI Polish требует разрешение для работы на сайтах. Нажмите ниже, чтобы включить."
+  },
+  "popupPermBtn": {
+    "message": "Включить на всех сайтах"
+  }
+}

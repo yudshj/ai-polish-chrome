@@ -1,0 +1,143 @@
+{
+  "extName": {
+    "message": "AI Polish"
+  },
+  "extDescription": {
+    "message": "Polissage de texte par IA pour tout champ de saisie dans votre navigateur"
+  },
+  "popupApiKey": {
+    "message": "Clé API"
+  },
+  "popupModel": {
+    "message": "Modèle"
+  },
+  "popupApiUrl": {
+    "message": "URL de l'API"
+  },
+  "popupNotSet": {
+    "message": "Non configuré"
+  },
+  "popupConfigured": {
+    "message": "Configuré"
+  },
+  "popupOpenSettings": {
+    "message": "Ouvrir les paramètres"
+  },
+  "popupSettings": {
+    "message": "Paramètres"
+  },
+  "panelTargetLang": {
+    "message": "Langue cible"
+  },
+  "panelLangAuto": {
+    "message": "Automatique (conserver la langue d'origine)"
+  },
+  "panelPolish": {
+    "message": "Polir"
+  },
+  "panelPolishing": {
+    "message": "Polissage en cours..."
+  },
+  "panelPolished": {
+    "message": "Poli !"
+  },
+  "panelUndo": {
+    "message": "Annuler"
+  },
+  "panelNoText": {
+    "message": "Aucun texte à polir"
+  },
+  "optTitle": {
+    "message": "Paramètres d'AI Polish"
+  },
+  "optApiConfig": {
+    "message": "Configuration de l'API"
+  },
+  "optApiUrl": {
+    "message": "URL de l'API"
+  },
+  "optApiUrlHint": {
+    "message": "OpenRouter ou tout endpoint compatible OpenAI"
+  },
+  "optApiKey": {
+    "message": "Clé API"
+  },
+  "optTestApi": {
+    "message": "Tester l'API"
+  },
+  "optTestTesting": {
+    "message": "Test en cours..."
+  },
+  "optTestSuccess": {
+    "message": "Connexion réussie !"
+  },
+  "optTestFail": {
+    "message": "Échec de la connexion"
+  },
+  "optTestNoKey": {
+    "message": "Veuillez d'abord entrer une clé API"
+  },
+  "optModel": {
+    "message": "Modèle"
+  },
+  "optModelCustom": {
+    "message": "Personnalisé..."
+  },
+  "optModelInfo": {
+    "message": "Infos du modèle"
+  },
+  "optModelInfoFetch": {
+    "message": "Récupérer"
+  },
+  "optModelInfoFetching": {
+    "message": "Récupération..."
+  },
+  "optModelInfoContext": {
+    "message": "Longueur du contexte"
+  },
+  "optModelInfoPromptCost": {
+    "message": "Coût d'entrée"
+  },
+  "optModelInfoCompletionCost": {
+    "message": "Coût de sortie"
+  },
+  "optModelInfoPerMTokens": {
+    "message": "/ 1M tokens"
+  },
+  "optModelInfoError": {
+    "message": "Impossible de récupérer les infos du modèle"
+  },
+  "optPromptTemplate": {
+    "message": "Modèle de prompt"
+  },
+  "optSystemPrompt": {
+    "message": "Prompt système"
+  },
+  "optPromptHint": {
+    "message": "Utilisez {{targetLanguage}} et {{text}} comme variables"
+  },
+  "optResetPrompt": {
+    "message": "Réinitialiser par défaut"
+  },
+  "optSave": {
+    "message": "Enregistrer"
+  },
+  "optSaved": {
+    "message": "Paramètres enregistrés !"
+  },
+  "optPromptReset": {
+    "message": "Prompt réinitialisé par défaut"
+  },
+  "optSpecifyModel": {
+    "message": "Veuillez spécifier un modèle"
+  },
+  "optGithub": {
+    "message": "GitHub"
+  },
+  "popupPermText": {
+    "message": "AI Polish a besoin d'une autorisation pour fonctionner sur les sites web. Cliquez ci-dessous pour l'activer."
+  },
+  "popupPermBtn": {
+    "message": "Activer sur tous les sites"
+  }
+}

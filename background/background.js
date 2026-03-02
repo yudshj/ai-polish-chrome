@@ -1,11 +1,56 @@
 importScripts('../lib/api.js');
 
+// ---- Dynamic content script registration ----
+
+const CONTENT_SCRIPT_ID = 'aip-content';
+
+async function registerContentScripts() {
+  const existing = await chrome.scripting.getRegisteredContentScripts({ ids: [CONTENT_SCRIPT_ID] });
+  if (existing.length > 0) return;
+
+  await chrome.scripting.registerContentScripts([{
+    id: CONTENT_SCRIPT_ID,
+    matches: ['*://*/*'],
+    js: ['content/content.js'],
+    css: ['content/content.css'],
+    runAt: 'document_idle'
+  }]);
+}
+
+async function unregisterContentScripts() {
+  try {
+    await chrome.scripting.unregisterContentScripts({ ids: [CONTENT_SCRIPT_ID] });
+  } catch {}
+}
+
+async function ensureContentScripts() {
+  const granted = await chrome.permissions.contains({ origins: ['*://*/*'] });
+  if (granted) {
+    await registerContentScripts();
+  }
+}
+
+// Register on install/update and startup
+chrome.runtime.onInstalled.addListener(ensureContentScripts);
+chrome.runtime.onStartup.addListener(ensureContentScripts);
+
+// React to permission changes
+chrome.permissions.onAdded.addListener((perms) => {
+  if (perms.origins?.length) registerContentScripts();
+});
+chrome.permissions.onRemoved.addListener((perms) => {
+  if (perms.origins?.length) unregisterContentScripts();
+});
+
 // ---- One-off messages (openOptions, fetchModelInfo, testApi) ----
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'openOptions') {
     chrome.runtime.openOptionsPage();
     sendResponse({ ok: true });
+  } else if (request.action === 'registerContentScripts') {
+    registerContentScripts().then(() => sendResponse({ ok: true }));
+    return true;
   } else if (request.action === 'fetchModelInfo') {
     handleFetchModelInfo(request.modelId).then(sendResponse);
     return true;

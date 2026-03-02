@@ -1,50 +1,143 @@
 {
-  "extName": { "message": "AI Polish" },
-  "extDescription": { "message": "AI-powered text polishing for any input field in your browser" },
-
-  "popupApiKey": { "message": "API Key" },
-  "popupModel": { "message": "Model" },
-  "popupApiUrl": { "message": "API URL" },
-  "popupNotSet": { "message": "Not Set" },
-  "popupConfigured": { "message": "Configured" },
-  "popupOpenSettings": { "message": "Open Settings" },
-  "popupSettings": { "message": "Settings" },
-
-  "panelTargetLang": { "message": "Target Language" },
-  "panelLangAuto": { "message": "Auto (keep original)" },
-  "panelPolish": { "message": "Polish" },
-  "panelPolishing": { "message": "Polishing..." },
-  "panelPolished": { "message": "Polished!" },
-  "panelUndo": { "message": "Undo" },
-  "panelNoText": { "message": "No text to polish" },
-
-  "optTitle": { "message": "AI Polish Settings" },
-  "optApiConfig": { "message": "API Configuration" },
-  "optApiUrl": { "message": "API URL" },
-  "optApiUrlHint": { "message": "OpenRouter or any OpenAI-compatible API endpoint" },
-  "optApiKey": { "message": "API Key" },
-  "optTestApi": { "message": "Test API" },
-  "optTestTesting": { "message": "Testing..." },
-  "optTestSuccess": { "message": "Connection successful!" },
-  "optTestFail": { "message": "Connection failed" },
-  "optTestNoKey": { "message": "Please enter an API key first" },
-  "optModel": { "message": "Model" },
-  "optModelCustom": { "message": "Custom..." },
-  "optModelInfo": { "message": "Model Info" },
-  "optModelInfoFetch": { "message": "Fetch Info" },
-  "optModelInfoFetching": { "message": "Fetching..." },
-  "optModelInfoContext": { "message": "Context Length" },
-  "optModelInfoPromptCost": { "message": "Prompt Cost" },
-  "optModelInfoCompletionCost": { "message": "Completion Cost" },
-  "optModelInfoPerMTokens": { "message": "/ 1M tokens" },
-  "optModelInfoError": { "message": "Failed to fetch model info" },
-  "optPromptTemplate": { "message": "Prompt Template" },
-  "optSystemPrompt": { "message": "System Prompt" },
-  "optPromptHint": { "message": "Use {{targetLanguage}} and {{text}} as placeholders" },
-  "optResetPrompt": { "message": "Reset to Default" },
-  "optSave": { "message": "Save Settings" },
-  "optSaved": { "message": "Settings saved!" },
-  "optPromptReset": { "message": "Prompt reset to default" },
-  "optSpecifyModel": { "message": "Please specify a model" },
-  "optGithub": { "message": "GitHub" }
+  "extName": {
+    "message": "AI Polish"
+  },
+  "extDescription": {
+    "message": "AI-powered text polishing for any input field in your browser"
+  },
+  "popupApiKey": {
+    "message": "API Key"
+  },
+  "popupModel": {
+    "message": "Model"
+  },
+  "popupApiUrl": {
+    "message": "API URL"
+  },
+  "popupNotSet": {
+    "message": "Not Set"
+  },
+  "popupConfigured": {
+    "message": "Configured"
+  },
+  "popupOpenSettings": {
+    "message": "Open Settings"
+  },
+  "popupSettings": {
+    "message": "Settings"
+  },
+  "panelTargetLang": {
+    "message": "Target Language"
+  },
+  "panelLangAuto": {
+    "message": "Auto (keep original)"
+  },
+  "panelPolish": {
+    "message": "Polish"
+  },
+  "panelPolishing": {
+    "message": "Polishing..."
+  },
+  "panelPolished": {
+    "message": "Polished!"
+  },
+  "panelUndo": {
+    "message": "Undo"
+  },
+  "panelNoText": {
+    "message": "No text to polish"
+  },
+  "optTitle": {
+    "message": "AI Polish Settings"
+  },
+  "optApiConfig": {
+    "message": "API Configuration"
+  },
+  "optApiUrl": {
+    "message": "API URL"
+  },
+  "optApiUrlHint": {
+    "message": "OpenRouter or any OpenAI-compatible API endpoint"
+  },
+  "optApiKey": {
+    "message": "API Key"
+  },
+  "optTestApi": {
+    "message": "Test API"
+  },
+  "optTestTesting": {
+    "message": "Testing..."
+  },
+  "optTestSuccess": {
+    "message": "Connection successful!"
+  },
+  "optTestFail": {
+    "message": "Connection failed"
+  },
+  "optTestNoKey": {
+    "message": "Please enter an API key first"
+  },
+  "optModel": {
+    "message": "Model"
+  },
+  "optModelCustom": {
+    "message": "Custom..."
+  },
+  "optModelInfo": {
+    "message": "Model Info"
+  },
+  "optModelInfoFetch": {
+    "message": "Fetch Info"
+  },
+  "optModelInfoFetching": {
+    "message": "Fetching..."
+  },
+  "optModelInfoContext": {
+    "message": "Context Length"
+  },
+  "optModelInfoPromptCost": {
+    "message": "Prompt Cost"
+  },
+  "optModelInfoCompletionCost": {
+    "message": "Completion Cost"
+  },
+  "optModelInfoPerMTokens": {
+    "message": "/ 1M tokens"
+  },
+  "optModelInfoError": {
+    "message": "Failed to fetch model info"
+  },
+  "optPromptTemplate": {
+    "message": "Prompt Template"
+  },
+  "optSystemPrompt": {
+    "message": "System Prompt"
+  },
+  "optPromptHint": {
+    "message": "Use {{targetLanguage}} and {{text}} as placeholders"
+  },
+  "optResetPrompt": {
+    "message": "Reset to Default"
+  },
+  "optSave": {
+    "message": "Save Settings"
+  },
+  "optSaved": {
+    "message": "Settings saved!"
+  },
+  "optPromptReset": {
+    "message": "Prompt reset to default"
+  },
+  "optSpecifyModel": {
+    "message": "Please specify a model"
+  },
+  "optGithub": {
+    "message": "GitHub"
+  },
+  "popupPermText": {
+    "message": "AI Polish needs permission to work on websites. Click below to enable."
+  },
+  "popupPermBtn": {
+    "message": "Enable on All Websites"
+  }
 }

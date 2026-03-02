@@ -8,6 +8,24 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('openSettings').textContent = i18n('popupOpenSettings');
   document.getElementById('settingsIcon').title = i18n('popupSettings');
   document.getElementById('keyStatus').textContent = i18n('popupNotSet');
+  document.getElementById('permText').textContent = i18n('popupPermText');
+  document.getElementById('permBtn').textContent = i18n('popupPermBtn');
+
+  // Check host permission
+  chrome.permissions.contains({ origins: ['*://*/*'] }, (granted) => {
+    if (!granted) {
+      document.getElementById('permBanner').style.display = 'block';
+    }
+  });
+
+  document.getElementById('permBtn').addEventListener('click', () => {
+    chrome.permissions.request({ origins: ['*://*/*'] }, (granted) => {
+      if (granted) {
+        document.getElementById('permBanner').style.display = 'none';
+        chrome.runtime.sendMessage({ action: 'registerContentScripts' });
+      }
+    });
+  });
 
   chrome.storage.sync.get({
     apiUrl: 'https://openrouter.ai/api/v1/chat/completions',

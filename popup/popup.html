@@ -88,6 +88,33 @@
       transition: opacity 0.15s;
     }
     .settings-btn:hover { opacity: 0.9; }
+    .perm-banner {
+      background: linear-gradient(135deg, #fff7ed, #fef3c7);
+      border: 1px solid #fbbf24;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .perm-banner p {
+      font-size: 12px;
+      color: #92400e;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .perm-btn {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 8px;
+      background: #f59e0b;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .perm-btn:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
@@ -110,6 +137,11 @@
         <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
       </svg>
     </button>
+  </div>
+
+  <div class="perm-banner" id="permBanner">
+    <p id="permText"></p>
+    <button class="perm-btn" id="permBtn"></button>
   </div>
 
   <div class="status-card">

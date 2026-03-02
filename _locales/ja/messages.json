@@ -1,50 +1,143 @@
 {
-  "extName": { "message": "AI Polish" },
-  "extDescription": { "message": "ブラウザのあらゆる入力欄でAIによるテキスト推敲を行います" },
-
-  "popupApiKey": { "message": "APIキー" },
-  "popupModel": { "message": "モデル" },
-  "popupApiUrl": { "message": "API URL" },
-  "popupNotSet": { "message": "未設定" },
-  "popupConfigured": { "message": "設定済み" },
-  "popupOpenSettings": { "message": "設定を開く" },
-  "popupSettings": { "message": "設定" },
-
-  "panelTargetLang": { "message": "出力言語" },
-  "panelLangAuto": { "message": "自動（原文の言語を維持）" },
-  "panelPolish": { "message": "推敲" },
-  "panelPolishing": { "message": "推敲中..." },
-  "panelPolished": { "message": "推敲完了！" },
-  "panelUndo": { "message": "元に戻す" },
-  "panelNoText": { "message": "推敲するテキストがありません" },
-
-  "optTitle": { "message": "AI Polish 設定" },
-  "optApiConfig": { "message": "API設定" },
-  "optApiUrl": { "message": "API URL" },
-  "optApiUrlHint": { "message": "OpenRouterまたはOpenAI互換のAPIエンドポイント" },
-  "optApiKey": { "message": "APIキー" },
-  "optTestApi": { "message": "API テスト" },
-  "optTestTesting": { "message": "テスト中..." },
-  "optTestSuccess": { "message": "接続成功！" },
-  "optTestFail": { "message": "接続失敗" },
-  "optTestNoKey": { "message": "先にAPIキーを入力してください" },
-  "optModel": { "message": "モデル" },
-  "optModelCustom": { "message": "カスタム..." },
-  "optModelInfo": { "message": "モデル情報" },
-  "optModelInfoFetch": { "message": "情報を取得" },
-  "optModelInfoFetching": { "message": "取得中..." },
-  "optModelInfoContext": { "message": "コンテキスト長" },
-  "optModelInfoPromptCost": { "message": "入力コスト" },
-  "optModelInfoCompletionCost": { "message": "出力コスト" },
-  "optModelInfoPerMTokens": { "message": "/ 100万トークン" },
-  "optModelInfoError": { "message": "モデル情報の取得に失敗しました" },
-  "optPromptTemplate": { "message": "プロンプトテンプレート" },
-  "optSystemPrompt": { "message": "システムプロンプト" },
-  "optPromptHint": { "message": "{{targetLanguage}} と {{text}} をプレースホルダーとして使用" },
-  "optResetPrompt": { "message": "デフォルトに戻す" },
-  "optSave": { "message": "設定を保存" },
-  "optSaved": { "message": "設定を保存しました！" },
-  "optPromptReset": { "message": "プロンプトをデフォルトに戻しました" },
-  "optSpecifyModel": { "message": "モデルを指定してください" },
-  "optGithub": { "message": "GitHub" }
+  "extName": {
+    "message": "AI Polish"
+  },
+  "extDescription": {
+    "message": "ブラウザのあらゆる入力欄でAIによるテキスト推敲を行います"
+  },
+  "popupApiKey": {
+    "message": "APIキー"
+  },
+  "popupModel": {
+    "message": "モデル"
+  },
+  "popupApiUrl": {
+    "message": "API URL"
+  },
+  "popupNotSet": {
+    "message": "未設定"
+  },
+  "popupConfigured": {
+    "message": "設定済み"
+  },
+  "popupOpenSettings": {
+    "message": "設定を開く"
+  },
+  "popupSettings": {
+    "message": "設定"
+  },
+  "panelTargetLang": {
+    "message": "出力言語"
+  },
+  "panelLangAuto": {
+    "message": "自動（原文の言語を維持）"
+  },
+  "panelPolish": {
+    "message": "推敲"
+  },
+  "panelPolishing": {
+    "message": "推敲中..."
+  },
+  "panelPolished": {
+    "message": "推敲完了！"
+  },
+  "panelUndo": {
+    "message": "元に戻す"
+  },
+  "panelNoText": {
+    "message": "推敲するテキストがありません"
+  },
+  "optTitle": {
+    "message": "AI Polish 設定"
+  },
+  "optApiConfig": {
+    "message": "API設定"
+  },
+  "optApiUrl": {
+    "message": "API URL"
+  },
+  "optApiUrlHint": {
+    "message": "OpenRouterまたはOpenAI互換のAPIエンドポイント"
+  },
+  "optApiKey": {
+    "message": "APIキー"
+  },
+  "optTestApi": {
+    "message": "API テスト"
+  },
+  "optTestTesting": {
+    "message": "テスト中..."
+  },
+  "optTestSuccess": {
+    "message": "接続成功！"
+  },
+  "optTestFail": {
+    "message": "接続失敗"
+  },
+  "optTestNoKey": {
+    "message": "先にAPIキーを入力してください"
+  },
+  "optModel": {
+    "message": "モデル"
+  },
+  "optModelCustom": {
+    "message": "カスタム..."
+  },
+  "optModelInfo": {
+    "message": "モデル情報"
+  },
+  "optModelInfoFetch": {
+    "message": "情報を取得"
+  },
+  "optModelInfoFetching": {
+    "message": "取得中..."
+  },
+  "optModelInfoContext": {
+    "message": "コンテキスト長"
+  },
+  "optModelInfoPromptCost": {
+    "message": "入力コスト"
+  },
+  "optModelInfoCompletionCost": {
+    "message": "出力コスト"
+  },
+  "optModelInfoPerMTokens": {
+    "message": "/ 100万トークン"
+  },
+  "optModelInfoError": {
+    "message": "モデル情報の取得に失敗しました"
+  },
+  "optPromptTemplate": {
+    "message": "プロンプトテンプレート"
+  },
+  "optSystemPrompt": {
+    "message": "システムプロンプト"
+  },
+  "optPromptHint": {
+    "message": "{{targetLanguage}} と {{text}} をプレースホルダーとして使用"
+  },
+  "optResetPrompt": {
+    "message": "デフォルトに戻す"
+  },
+  "optSave": {
+    "message": "設定を保存"
+  },
+  "optSaved": {
+    "message": "設定を保存しました！"
+  },
+  "optPromptReset": {
+    "message": "プロンプトをデフォルトに戻しました"
+  },
+  "optSpecifyModel": {
+    "message": "モデルを指定してください"
+  },
+  "optGithub": {
+    "message": "GitHub"
+  },
+  "popupPermText": {
+    "message": "AI Polishがウェブサイトで動作するには権限が必要です。下のボタンをクリックして有効にしてください。"
+  },
+  "popupPermBtn": {
+    "message": "すべてのウェブサイトで有効にする"
+  }
 }
