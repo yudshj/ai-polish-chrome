@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "AI Polish"
+    "message": "AI Polish - using OpenRouter.ai"
   },
   "extDescription": {
-    "message": "AI-powered text polishing for any input field in your browser"
+    "message": "AI-powered text polishing for any input field. Powered by OpenRouter.ai — use GPT, Claude, Gemini, and more."
   },
   "popupApiKey": {
     "message": "API Key"

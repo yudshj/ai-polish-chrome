@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "AI Polish"
+    "message": "AI Polish - using OpenRouter.ai"
   },
   "extDescription": {
-    "message": "ブラウザのあらゆる入力欄でAIによるテキスト推敲を行います"
+    "message": "あらゆる入力欄でAIテキスト推敲。OpenRouter.ai経由でGPT・Claude・Geminiなど多数のモデルに対応。"
   },
   "popupApiKey": {
     "message": "APIキー"

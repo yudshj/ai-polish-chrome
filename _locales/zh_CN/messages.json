@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "AI Polish"
+    "message": "AI Polish - using OpenRouter.ai"
   },
   "extDescription": {
-    "message": "AI 驱动的文本润色工具，适用于浏览器中的任意输入框"
+    "message": "AI 驱动的文本润色工具，适用于任意输入框。通过 OpenRouter.ai 支持 GPT、Claude、Gemini 等模型。"
   },
   "popupApiKey": {
     "message": "API 密钥"

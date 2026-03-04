@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "AI Polish"
+    "message": "AI Polish - using OpenRouter.ai"
   },
   "extDescription": {
-    "message": "KI-gestützte Textverbesserung für jedes Eingabefeld in Ihrem Browser"
+    "message": "KI-gestützte Textverbesserung für jedes Eingabefeld. Über OpenRouter.ai — GPT, Claude, Gemini und mehr."
   },
   "popupApiKey": {
     "message": "API-Schlüssel"

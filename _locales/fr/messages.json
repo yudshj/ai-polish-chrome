@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "AI Polish"
+    "message": "AI Polish - using OpenRouter.ai"
   },
   "extDescription": {
-    "message": "Polissage de texte par IA pour tout champ de saisie dans votre navigateur"
+    "message": "Polissage de texte par IA pour tout champ de saisie. Via OpenRouter.ai — GPT, Claude, Gemini et plus."
   },
   "popupApiKey": {
     "message": "Clé API"

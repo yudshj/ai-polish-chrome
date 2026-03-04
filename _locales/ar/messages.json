@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "AI Polish"
+    "message": "AI Polish - using OpenRouter.ai"
   },
   "extDescription": {
-    "message": "تحسين النصوص بالذكاء الاصطناعي لأي حقل إدخال في متصفحك"
+    "message": "تحسين النصوص بالذكاء الاصطناعي لأي حقل إدخال. مدعوم من OpenRouter.ai — استخدم GPT وClaude وGemini والمزيد."
   },
   "popupApiKey": {
     "message": "مفتاح API"
