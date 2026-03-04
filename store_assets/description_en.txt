@@ -1,0 +1,40 @@
+AI Polish — your personal AI writing assistant that works everywhere in the browser.
+
+Focus on any text input, textarea, or contenteditable field, and a small purple button appears. Hover to open the polish panel, click Polish, and watch your text being refined in real-time with a smooth typing animation.
+
+FEATURES
+
+• Works everywhere — any text input, textarea, or contenteditable field on any website
+• Streaming output — text appears character by character with a spinning gradient cursor
+• Multiple languages — auto-detect input language, or choose: Chinese, English, Japanese
+• Skip sites — disable on specific websites from the popup, manage the list in settings
+• Undo support — one click to instantly revert to your original text
+• 6 built-in LLM models — Gemini 3 Flash, Gemini 3.1 Pro, Qwen 3.5, GPT-5.2, Claude Opus 4.6, Claude Sonnet 4.6, or any custom OpenAI-compatible model
+• Custom prompts — built-in default prompt with full customization
+• API test — verify your API key and endpoint before polishing
+• Model info — auto-fetches context length and pricing from OpenRouter
+• Internationalized UI — English, 中文, 日本語, العربية, Deutsch
+
+HOW IT WORKS
+
+1. Focus on any text input field on a web page
+2. A purple pen button appears at the bottom-right corner
+3. Hover over the button to reveal the polish panel
+4. Select a target language (or leave on Auto)
+5. Click Polish — text streams in with a typing animation
+6. Click Undo to revert if needed
+
+SETUP
+
+1. Click the extension icon → Open Settings
+2. Enter your API key (get one free at openrouter.ai/keys)
+3. Select a model and save
+4. Start polishing!
+
+PRIVACY
+
+• Your text is sent only to the API endpoint you configure (default: OpenRouter)
+• No data is collected, stored, or shared by the extension itself
+• API key is stored locally in Chrome sync storage
+
+Open source: https://github.com/yudshj/ai-polish-chrome
