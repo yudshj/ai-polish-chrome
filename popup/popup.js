@@ -43,6 +43,59 @@ document.addEventListener('DOMContentLoaded', () => {
     urlEl.title = settings.apiUrl;
   });
 
+  // ---- Skip site toggle ----
+
+  const skipRow = document.getElementById('skipRow');
+  const skipHost = document.getElementById('skipHost');
+  const skipToggle = document.getElementById('skipToggle');
+  let currentHostname = '';
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs[0]?.url) return;
+    try {
+      const url = new URL(tabs[0].url);
+      if (!['http:', 'https:'].includes(url.protocol)) return;
+      currentHostname = url.hostname;
+      skipHost.textContent = currentHostname;
+      skipRow.style.display = 'flex';
+      loadSkipState();
+    } catch {}
+  });
+
+  function loadSkipState() {
+    chrome.storage.sync.get({ skipSites: [] }, (data) => {
+      updateSkipUI(data.skipSites.includes(currentHostname));
+    });
+  }
+
+  function updateSkipUI(isSkipped) {
+    if (isSkipped) {
+      skipToggle.textContent = i18n('popupSiteSkipped');
+      skipToggle.className = 'skip-toggle skipped';
+      skipToggle.title = i18n('popupUnskipSite');
+    } else {
+      skipToggle.textContent = i18n('popupSkipSite');
+      skipToggle.className = 'skip-toggle';
+      skipToggle.title = '';
+    }
+  }
+
+  skipToggle.addEventListener('click', () => {
+    if (!currentHostname) return;
+    chrome.storage.sync.get({ skipSites: [] }, (data) => {
+      const sites = data.skipSites;
+      const idx = sites.indexOf(currentHostname);
+      if (idx >= 0) {
+        sites.splice(idx, 1);
+      } else {
+        sites.push(currentHostname);
+      }
+      chrome.storage.sync.set({ skipSites: sites }, () => {
+        updateSkipUI(idx < 0);
+      });
+    });
+  });
+
   const openOpts = () => chrome.runtime.openOptionsPage();
   document.getElementById('openSettings').addEventListener('click', openOpts);
   document.getElementById('settingsIcon').addEventListener('click', openOpts);

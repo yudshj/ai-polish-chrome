@@ -31,6 +31,7 @@ const $apiKey = document.getElementById('apiKey');
 const $modelSelect = document.getElementById('modelSelect');
 const $customModel = document.getElementById('customModel');
 const $prompt = document.getElementById('prompt');
+const $skipSitesText = document.getElementById('skipSitesText');
 
 // ---- i18n: Apply labels ----
 
@@ -52,6 +53,8 @@ document.getElementById('cardPrompt').textContent = i18n('optPromptTemplate');
 document.getElementById('labelPrompt').textContent = i18n('optSystemPrompt');
 document.getElementById('hintPrompt').textContent = i18n('optPromptHint');
 document.getElementById('resetPrompt').textContent = i18n('optResetPrompt');
+document.getElementById('cardSkipSites').textContent = i18n('optSkipSites');
+document.getElementById('hintSkipSites').textContent = i18n('optSkipSitesHint');
 document.getElementById('save').textContent = i18n('optSave');
 
 // ---- Model select toggle + auto-fetch ----
@@ -70,11 +73,13 @@ chrome.storage.sync.get({
   apiUrl: DEFAULT_API_URL,
   apiKey: '',
   model: PRESET_MODELS[0],
-  prompt: DEFAULT_PROMPT
+  prompt: DEFAULT_PROMPT,
+  skipSites: []
 }, (s) => {
   $apiUrl.value = s.apiUrl;
   $apiKey.value = s.apiKey;
   $prompt.value = s.prompt;
+  $skipSitesText.value = s.skipSites.join('\n');
 
   if (PRESET_MODELS.includes(s.model)) {
     $modelSelect.value = s.model;
@@ -98,11 +103,17 @@ document.getElementById('save').addEventListener('click', () => {
     return;
   }
 
+  const skipSites = $skipSitesText.value
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+
   chrome.storage.sync.set({
     apiUrl: $apiUrl.value.trim() || DEFAULT_API_URL,
     apiKey: $apiKey.value.trim(),
     model: model,
-    prompt: $prompt.value
+    prompt: $prompt.value,
+    skipSites: skipSites
   }, () => {
     toast(i18n('optSaved'));
   });

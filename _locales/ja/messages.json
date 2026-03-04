@@ -139,5 +139,20 @@
   },
   "popupPermBtn": {
     "message": "すべてのウェブサイトで有効にする"
+  },
+  "popupSkipSite": {
+    "message": "このサイトをスキップ"
+  },
+  "popupUnskipSite": {
+    "message": "このサイトで有効にする"
+  },
+  "popupSiteSkipped": {
+    "message": "スキップ中"
+  },
+  "optSkipSites": {
+    "message": "スキップするサイト"
+  },
+  "optSkipSitesHint": {
+    "message": "1行に1つのホスト名（例：example.com）"
   }
 }

@@ -139,5 +139,20 @@
   },
   "popupPermBtn": {
     "message": "التفعيل على جميع المواقع"
+  },
+  "popupSkipSite": {
+    "message": "تخطي هذا الموقع"
+  },
+  "popupUnskipSite": {
+    "message": "تفعيل على هذا الموقع"
+  },
+  "popupSiteSkipped": {
+    "message": "تم التخطي"
+  },
+  "optSkipSites": {
+    "message": "المواقع المتخطاة"
+  },
+  "optSkipSitesHint": {
+    "message": "اسم مضيف واحد لكل سطر، مثل example.com"
   }
 }

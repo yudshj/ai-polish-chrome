@@ -9,6 +9,7 @@ AI-powered text polishing for any input field in your browser. Like Grammarly, b
 - **Streaming output** — text appears gradually with a typewriter animation and a spinning gradient cursor
 - **Language options** — Auto-detect, Chinese, English, Japanese
 - **Undo support** — instantly revert to original text
+- **Skip sites** — disable on specific websites from the popup; manage the list in settings
 - **Settings access** — gear icon in both the floating panel and popup
 - **API test** — verify your API key and endpoint work before polishing
 - **Model info** — auto-fetches context length and pricing from OpenRouter
@@ -57,6 +58,13 @@ Use the **Test API** button in settings to verify your configuration.
 4. Select a target language (or leave on Auto)
 5. Click **Polish** — text streams in character by character with a spinning gradient cursor
 6. Click **Undo** to revert if needed
+
+### Skip Sites
+
+Don't want AI Polish on a particular website?
+
+- Click the extension icon → **Skip this site** (takes effect immediately, no reload needed)
+- Or manage the full skip list in **Settings → Skipped Sites** (one hostname per line)
 
 ## Tech Stack
 

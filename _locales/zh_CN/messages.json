@@ -139,5 +139,20 @@
   },
   "popupPermBtn": {
     "message": "在所有网站上启用"
+  },
+  "popupSkipSite": {
+    "message": "跳过当前站点"
+  },
+  "popupUnskipSite": {
+    "message": "启用当前站点"
+  },
+  "popupSiteSkipped": {
+    "message": "已跳过"
+  },
+  "optSkipSites": {
+    "message": "跳过的站点"
+  },
+  "optSkipSitesHint": {
+    "message": "每行一个主机名，例如 example.com"
   }
 }

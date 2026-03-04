@@ -251,6 +251,76 @@ describe('Content script — polish flow', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Suite 3b: Content script — skip sites
+// ---------------------------------------------------------------------------
+
+describe('Content script — skip sites', () => {
+  afterEach(async () => {
+    await setStorage(worker, { skipSites: [] });
+  });
+
+  test('Button does not appear when site is skipped', async () => {
+    await setStorage(worker, { skipSites: ['127.0.0.1'] });
+    const page = await createTestPage(browser, mockServer.url);
+
+    await page.click('#testTextarea');
+
+    let appeared = true;
+    try {
+      await page.waitForSelector('.aip-btn', { visible: true, timeout: 2000 });
+    } catch {
+      appeared = false;
+    }
+    expect(appeared).toBe(false);
+
+    await page.close();
+  });
+
+  test('Button hides when site is added to skip list (no reload)', async () => {
+    const page = await createTestPage(browser, mockServer.url);
+
+    await page.click('#testTextarea');
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+
+    // Add site to skip list — no page reload
+    await setStorage(worker, { skipSites: ['127.0.0.1'] });
+
+    // Button should hide via storage.onChanged
+    await page.waitForSelector('.aip-btn', { hidden: true, timeout: 5000 });
+
+    await page.close();
+  });
+
+  test('Button reappears after removing site from skip list (no reload)', async () => {
+    await setStorage(worker, { skipSites: ['127.0.0.1'] });
+    const page = await createTestPage(browser, mockServer.url);
+
+    // Confirm button does not appear
+    await page.click('#testTextarea');
+    let appeared = true;
+    try {
+      await page.waitForSelector('.aip-btn', { visible: true, timeout: 2000 });
+    } catch {
+      appeared = false;
+    }
+    expect(appeared).toBe(false);
+
+    // Remove site — no page reload
+    await setStorage(worker, { skipSites: [] });
+
+    // Wait for storage change propagation, then re-trigger focus
+    await new Promise((r) => setTimeout(r, 300));
+    await page.evaluate(() => document.activeElement.blur());
+    await new Promise((r) => setTimeout(r, 200));
+    await page.click('#testTextarea');
+
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+
+    await page.close();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Suite 4: Popup
 // ---------------------------------------------------------------------------
 
@@ -406,6 +476,28 @@ describe('Options page', () => {
     const text = await page.$eval('#testResult', (el) => el.textContent);
     expect(text).toBeTruthy();
     await page.close();
+  });
+
+  test('Skip sites textarea loads and saves', async () => {
+    await setStorage(worker, { skipSites: ['example.com', 'test.org'] });
+    const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('#skipSitesText');
+
+    const text = await page.$eval('#skipSitesText', (el) => el.value);
+    expect(text).toBe('example.com\ntest.org');
+
+    // Modify and save
+    await page.evaluate(() => {
+      document.getElementById('skipSitesText').value = 'new-site.com\nanother.org';
+    });
+    await page.click('#save');
+    await page.waitForSelector('.toast.show', { timeout: 5000 });
+
+    const stored = await getStorage(worker, ['skipSites']);
+    expect(stored.skipSites).toEqual(['new-site.com', 'another.org']);
+
+    await page.close();
+    await setStorage(worker, { skipSites: [] });
   });
 
   test('Model info fetch', async () => {

@@ -27,6 +27,7 @@ A Chrome extension that adds AI-powered text polishing to any text input field i
 ### 3. Popup Window
 - Show current API key status, model name, and API URL
 - **Settings gear icon button** (no text) in the top-right corner to open the settings page
+- **Skip site toggle** — shows current tab's hostname; click to add/remove from skip list. Takes effect immediately (no page reload needed via `chrome.storage.onChanged` in content script)
 - "Open Settings" button at the bottom
 - All text supports i18n
 
@@ -44,6 +45,7 @@ A Chrome extension that adds AI-powered text polishing to any text input field i
 - **Model Info Widget**: Below model selection, auto-fetches model context length and cost from OpenRouter API when a preset model is selected. Also has a manual "Fetch Info" button.
 - **Custom Prompt**: Textarea with built-in default prompt, editable
 - **Reset to Default**: Button to restore the default prompt
+- **Skipped Sites**: Textarea for managing the skip list — one hostname per line; supports adding, deleting, and bulk plain-text editing. Saved alongside other settings.
 - **GitHub Link**: Icon button in header linking to https://github.com/yudshj/ai-polish-chrome
 - All text supports i18n
 
@@ -134,3 +136,10 @@ Text to polish:
 - **Typewriter queue**: Content script accumulates chunks in a buffer; a 60fps `setInterval` gradually reveals characters with adaptive speed (`Math.ceil(buffered / 20)` chars per tick)
 - **Typing cursor**: A spinning gradient ring (conic-gradient + CSS mask) follows the last displayed character. Positioning uses mirror-div technique for textarea/input, Range API for contentEditable
 - **Port lifecycle**: Background never calls `port.disconnect()` — content script disconnects after receiving `done` or `error` to avoid race conditions
+
+### Skip Sites
+- **Storage**: `skipSites` array in `chrome.storage.sync` stores hostnames (e.g. `["example.com", "mail.google.com"]`)
+- **Popup toggle**: Uses `chrome.tabs.query` to get active tab hostname; toggles the hostname in `skipSites` array
+- **Content script guard**: `siteSkipped` flag checked in `showButton()`; if true, the floating button is never shown
+- **Real-time updates**: Content script listens to `chrome.storage.onChanged` — when `skipSites` changes, immediately hides/enables the button without page reload
+- **Options management**: Plain-text textarea (one hostname per line) in the settings page; parsed on save (split by newlines, trimmed, empty lines removed)

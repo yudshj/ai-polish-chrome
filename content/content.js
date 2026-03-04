@@ -15,6 +15,7 @@
   let isPolishing = false;
   let btnEventsAttached = false;
   let panelEventsAttached = false;
+  let siteSkipped = false;
 
   // ---- Helpers ----
 
@@ -261,6 +262,7 @@
   // ---- Show / Hide ----
 
   function showButton(el) {
+    if (siteSkipped) return;
     if (activeElement === el && currentBtn) {
       positionButton(el);
       return;
@@ -541,5 +543,26 @@
   };
   window.addEventListener('scroll', reposition, true);
   window.addEventListener('resize', reposition);
+
+  // ---- Skip sites: check on load and react to changes ----
+
+  const currentHost = location.hostname;
+
+  chrome.storage.sync.get({ skipSites: [] }, (data) => {
+    if (data.skipSites.includes(currentHost)) {
+      siteSkipped = true;
+      hideAll();
+    }
+  });
+
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'sync' || !changes.skipSites) return;
+    const newList = changes.skipSites.newValue || [];
+    const wasSkipped = siteSkipped;
+    siteSkipped = newList.includes(currentHost);
+    if (siteSkipped && !wasSkipped) {
+      hideAll();
+    }
+  });
 
 })();
