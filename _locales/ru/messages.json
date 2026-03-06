@@ -142,5 +142,8 @@
   },
   "optSignup": {
     "message": "Нет ключа? Зарегистрируйтесь"
+  },
+  "optModelSelected": {
+    "message": "Выбрано: "
   }
 }

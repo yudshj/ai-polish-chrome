@@ -142,5 +142,8 @@
   },
   "optSignup": {
     "message": "Sem chave? Cadastre-se"
+  },
+  "optModelSelected": {
+    "message": "Selecionado: "
   }
 }

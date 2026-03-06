@@ -157,6 +157,13 @@
     }
     .test-result.success { color: #2e7d32; }
     .test-result.error { color: #e74c3c; }
+    .selected-model {
+      font-size: 13px;
+      color: #6C63FF;
+      font-weight: 600;
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
     /* Model list */
     .model-toolbar {
       display: flex;
@@ -405,6 +412,7 @@
 
       <div class="field">
         <label id="labelModel"></label>
+        <div class="selected-model" id="selectedModelDisplay"></div>
         <div class="model-toolbar">
           <button class="model-toolbar-btn" id="addModelBtn"></button>
           <button class="model-toolbar-btn danger" id="deleteModelBtn"></button>

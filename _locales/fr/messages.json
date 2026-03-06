@@ -142,5 +142,8 @@
   },
   "optSignup": {
     "message": "Pas de clé ? S'inscrire"
+  },
+  "optModelSelected": {
+    "message": "Sélectionné : "
   }
 }

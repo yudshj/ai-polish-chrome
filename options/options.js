@@ -73,6 +73,8 @@ function persistModels() {
 // ---- Model list rendering ----
 
 function renderModelList() {
+  document.getElementById('selectedModelDisplay').textContent =
+    selectedModelId ? i18n('optModelSelected') + selectedModelId : '';
   $modelList.innerHTML = '';
 
   models.forEach((m, idx) => {

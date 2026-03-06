@@ -199,5 +199,8 @@
   },
   "optSignup": {
     "message": "No key? Sign up"
+  },
+  "optModelSelected": {
+    "message": "Selected: "
   }
 }
