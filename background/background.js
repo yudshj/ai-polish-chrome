@@ -236,9 +236,16 @@ async function resolveOrgIcon(orgSlug) {
     const pageRes = await fetch(`https://openrouter.ai/${encodeURIComponent(orgSlug)}`);
     if (pageRes.ok) {
       const html = await pageRes.text();
-      const match = html.match(/\/images\/icons\/([^"'\s]+\.(?:svg|png))/);
-      if (match) {
-        iconUrl = `https://openrouter.ai${match[0]}`;
+      // Try OpenRouter's own icon first
+      const ownIcon = html.match(/\/images\/icons\/([^"'\s]+\.(?:svg|png))/);
+      if (ownIcon) {
+        iconUrl = `https://openrouter.ai${ownIcon[0]}`;
+      } else {
+        // Fallback: Google favicon service URL embedded in the page
+        const favicon = html.match(/https:\/\/t0\.gstatic\.com\/faviconV2[^"'\s]+/);
+        if (favicon) {
+          iconUrl = favicon[0].replace(/&amp;/g, '&');
+        }
       }
     }
   } catch {}
@@ -248,9 +255,9 @@ async function resolveOrgIcon(orgSlug) {
   if (iconUrl) {
     try {
       const dataUrl = await fetchIconAsDataUrl(iconUrl);
-      result = dataUrl || iconUrl; // fallback to remote URL if conversion fails
+      result = dataUrl || generateFallbackIcon(orgSlug);
     } catch {
-      result = iconUrl;
+      result = generateFallbackIcon(orgSlug);
     }
   } else {
     result = generateFallbackIcon(orgSlug);

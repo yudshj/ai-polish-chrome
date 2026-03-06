@@ -277,6 +277,42 @@
     .add-row-btn:hover { opacity: 0.8; }
     .add-row-ok { background: #6C63FF; color: #fff; }
     .add-row-cancel { background: #f0f0f0; color: #666; }
+    /* Bulk edit panel */
+    .bulk-edit-panel {
+      display: none;
+      margin-bottom: 10px;
+    }
+    .bulk-edit-panel.visible { display: block; }
+    .bulk-edit-panel textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 10px 12px;
+      border: 1.5px solid #6C63FF;
+      border-radius: 10px;
+      font-family: 'SF Mono','Menlo','Monaco','Consolas',monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      background: #fff;
+    }
+    .bulk-edit-panel .hint { margin-top: 4px; margin-bottom: 8px; }
+    .bulk-edit-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .bulk-edit-actions button {
+      padding: 6px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .bulk-edit-actions button:hover { opacity: 0.85; }
+    .bulk-edit-ok { background: #6C63FF; color: #fff; }
+    .bulk-edit-cancel { background: #f0f0f0; color: #555; }
     /* Confirm modal overlay */
     .modal-overlay {
       display: none;
@@ -416,8 +452,17 @@
         <div class="model-toolbar">
           <button class="model-toolbar-btn" id="addModelBtn"></button>
           <button class="model-toolbar-btn danger" id="deleteModelBtn"></button>
+          <button class="model-toolbar-btn" id="bulkEditBtn"></button>
           <button class="model-toolbar-btn" id="fetchModelInfo"></button>
           <button class="model-toolbar-btn danger" id="clearModelInfo"></button>
+        </div>
+        <div class="bulk-edit-panel" id="bulkEditPanel">
+          <textarea id="bulkEditText"></textarea>
+          <div class="hint" id="hintBulkEdit"></div>
+          <div class="bulk-edit-actions">
+            <button class="bulk-edit-ok" id="bulkEditOk">OK</button>
+            <button class="bulk-edit-cancel" id="bulkEditCancel"></button>
+          </div>
         </div>
         <div class="model-list" id="modelList"></div>
         <div class="model-info-error" id="modelInfoError" style="display:none"></div>

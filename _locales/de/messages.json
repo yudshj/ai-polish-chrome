@@ -202,5 +202,11 @@
   },
   "optModelSelected": {
     "message": "Ausgewählt: "
+  },
+  "optModelBulkEdit": {
+    "message": "Massenbearbeitung"
+  },
+  "optModelBulkEditHint": {
+    "message": "Eine Modell-ID pro Zeile. Vorhandene Modellinfos bleiben erhalten."
   }
 }

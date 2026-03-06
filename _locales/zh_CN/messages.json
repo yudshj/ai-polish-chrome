@@ -202,5 +202,11 @@
   },
   "optModelSelected": {
     "message": "已选择：\u200b"
+  },
+  "optModelBulkEdit": {
+    "message": "批量编辑"
+  },
+  "optModelBulkEditHint": {
+    "message": "每行一个模型 ID，已有的模型信息会保留。"
   }
 }

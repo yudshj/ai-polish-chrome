@@ -202,5 +202,11 @@
   },
   "optModelSelected": {
     "message": "Selected: "
+  },
+  "optModelBulkEdit": {
+    "message": "Bulk Edit"
+  },
+  "optModelBulkEditHint": {
+    "message": "One model ID per line. Existing model info is preserved."
   }
 }

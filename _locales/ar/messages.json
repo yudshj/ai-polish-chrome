@@ -202,5 +202,11 @@
   },
   "optModelSelected": {
     "message": "المحدد: "
+  },
+  "optModelBulkEdit": {
+    "message": "تعديل جماعي"
+  },
+  "optModelBulkEditHint": {
+    "message": "معرف نموذج واحد لكل سطر. يتم الاحتفاظ بمعلومات النماذج الحالية."
   }
 }

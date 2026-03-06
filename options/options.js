@@ -55,6 +55,9 @@ document.getElementById('addModelBtn').textContent = i18n('optModelAdd');
 document.getElementById('deleteModelBtn').textContent = i18n('optModelDelete');
 document.getElementById('fetchModelInfo').textContent = i18n('optModelInfoFetch');
 document.getElementById('clearModelInfo').textContent = i18n('optModelClearInfo');
+document.getElementById('bulkEditBtn').textContent = i18n('optModelBulkEdit');
+document.getElementById('hintBulkEdit').textContent = i18n('optModelBulkEditHint');
+document.getElementById('bulkEditCancel').textContent = i18n('optCancel');
 document.getElementById('cardPrompt').textContent = i18n('optPromptTemplate');
 document.getElementById('labelPrompt').textContent = i18n('optSystemPrompt');
 document.getElementById('hintPrompt').textContent = i18n('optPromptHint');
@@ -305,6 +308,55 @@ document.getElementById('clearModelInfo').addEventListener('click', async () => 
   renderModelList();
   persistModels();
   toast(i18n('optModelInfoCleared'));
+});
+
+// ---- Bulk edit models ----
+
+document.getElementById('bulkEditBtn').addEventListener('click', () => {
+  const panel = document.getElementById('bulkEditPanel');
+  const textarea = document.getElementById('bulkEditText');
+  const isVisible = panel.classList.contains('visible');
+  if (isVisible) {
+    panel.classList.remove('visible');
+    return;
+  }
+  textarea.value = models.map((m) => m.id).join('\n');
+  panel.classList.add('visible');
+  textarea.focus();
+});
+
+document.getElementById('bulkEditOk').addEventListener('click', () => {
+  const textarea = document.getElementById('bulkEditText');
+  const newIds = textarea.value.split('\n').map((s) => s.trim()).filter(Boolean);
+
+  // Deduplicate while preserving order
+  const seen = new Set();
+  const uniqueIds = [];
+  for (const id of newIds) {
+    if (!seen.has(id)) {
+      seen.add(id);
+      uniqueIds.push(id);
+    }
+  }
+
+  // Preserve existing model metadata for models that remain
+  const oldMap = {};
+  for (const m of models) oldMap[m.id] = m;
+
+  models = uniqueIds.map((id) => oldMap[id] || { id });
+
+  // Fix selected model
+  if (!models.some((m) => m.id === selectedModelId)) {
+    selectedModelId = models.length > 0 ? models[0].id : '';
+  }
+
+  document.getElementById('bulkEditPanel').classList.remove('visible');
+  renderModelList();
+  persistModels();
+});
+
+document.getElementById('bulkEditCancel').addEventListener('click', () => {
+  document.getElementById('bulkEditPanel').classList.remove('visible');
 });
 
 // ---- Fetch model info (smart: unfetched + force selected) ----

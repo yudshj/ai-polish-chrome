@@ -145,5 +145,11 @@
   },
   "optModelSelected": {
     "message": "Выбрано: "
+  },
+  "optModelBulkEdit": {
+    "message": "Массовое редактирование"
+  },
+  "optModelBulkEditHint": {
+    "message": "Один ID модели на строку. Существующая информация сохраняется."
   }
 }

@@ -145,5 +145,11 @@
   },
   "optModelSelected": {
     "message": "Sélectionné : "
+  },
+  "optModelBulkEdit": {
+    "message": "Édition en masse"
+  },
+  "optModelBulkEditHint": {
+    "message": "Un ID de modèle par ligne. Les infos existantes sont conservées."
   }
 }

@@ -202,5 +202,11 @@
   },
   "optModelSelected": {
     "message": "選択中：\u200b"
+  },
+  "optModelBulkEdit": {
+    "message": "一括編集"
+  },
+  "optModelBulkEditHint": {
+    "message": "1行に1つのモデルID。既存のモデル情報は保持されます。"
   }
 }
