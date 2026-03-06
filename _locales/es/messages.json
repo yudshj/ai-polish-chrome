@@ -139,5 +139,8 @@
   },
   "popupPermBtn": {
     "message": "Activar en todos los sitios"
+  },
+  "optSignup": {
+    "message": "¿Sin clave? Regístrate"
   }
 }

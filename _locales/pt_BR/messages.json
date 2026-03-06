@@ -139,5 +139,8 @@
   },
   "popupPermBtn": {
     "message": "Ativar em todos os sites"
+  },
+  "optSignup": {
+    "message": "Sem chave? Cadastre-se"
   }
 }

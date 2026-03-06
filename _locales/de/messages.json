@@ -196,5 +196,8 @@
   },
   "panelChatMode": {
     "message": "Chat-Modus (direkt senden)"
+  },
+  "optSignup": {
+    "message": "Kein Schlüssel? Registrieren"
   }
 }

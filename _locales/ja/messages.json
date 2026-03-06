@@ -196,5 +196,8 @@
   },
   "panelChatMode": {
     "message": "チャットモード（そのまま送信）"
+  },
+  "optSignup": {
+    "message": "キーがない？登録する"
   }
 }

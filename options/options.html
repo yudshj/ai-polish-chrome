@@ -106,6 +106,15 @@
       color: #aaa;
       margin-top: 4px;
     }
+    .signup-link {
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      color: #6C63FF;
+      text-decoration: none;
+      font-size: 11px;
+    }
+    .signup-link:hover { text-decoration: underline; }
     /* API test */
     .api-test-row {
       display: flex;
@@ -370,7 +379,7 @@
       </div>
 
       <div class="field">
-        <label id="labelApiKey"></label>
+        <label id="labelApiKey"><span></span> <a href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener noreferrer" class="signup-link" id="signupLink"></a></label>
         <input type="password" id="apiKey" placeholder="sk-or-...">
         <div class="api-test-row">
           <button class="test-btn" id="testApi"></button>

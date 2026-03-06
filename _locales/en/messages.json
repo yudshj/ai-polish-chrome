@@ -196,5 +196,8 @@
   },
   "panelChatMode": {
     "message": "Chat mode (send as-is)"
+  },
+  "optSignup": {
+    "message": "No key? Sign up"
   }
 }

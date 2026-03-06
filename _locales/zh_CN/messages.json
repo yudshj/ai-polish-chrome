@@ -196,5 +196,8 @@
   },
   "panelChatMode": {
     "message": "对话模式（直接发送）"
+  },
+  "optSignup": {
+    "message": "没有密钥？去注册"
   }
 }
