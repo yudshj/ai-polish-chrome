@@ -188,8 +188,14 @@
   "optModelClearInfo": {
     "message": "清除信息"
   },
+  "optModelClearAllInfo": {
+    "message": "清除全部信息"
+  },
   "optModelClearInfoConfirm": {
     "message": "清除所有已缓存的模型信息（上下文大小、费用、图标）？"
+  },
+  "optModelClearAllInfoConfirm": {
+    "message": "清除所有模型的缓存信息（上下文大小、费用、图标）？"
   },
   "optModelInfoCleared": {
     "message": "模型信息已清除"

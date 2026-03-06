@@ -188,8 +188,14 @@
   "optModelClearInfo": {
     "message": "Clear Info"
   },
+  "optModelClearAllInfo": {
+    "message": "Clear All Info"
+  },
   "optModelClearInfoConfirm": {
     "message": "Clear all cached model info (context length, pricing, icons)?"
+  },
+  "optModelClearAllInfoConfirm": {
+    "message": "Clear ALL cached model info (context length, pricing, icons) for every model?"
   },
   "optModelInfoCleared": {
     "message": "Model info cleared"

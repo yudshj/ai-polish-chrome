@@ -151,5 +151,20 @@
   },
   "optModelBulkEditHint": {
     "message": "Один ID модели на строку. Существующая информация сохраняется."
+  },
+  "optModelClearInfo": {
+    "message": "Очистить информацию"
+  },
+  "optModelClearAllInfo": {
+    "message": "Очистить всю информацию"
+  },
+  "optModelClearInfoConfirm": {
+    "message": "Очистить информацию о модели (контекст, стоимость, иконка)?"
+  },
+  "optModelClearAllInfoConfirm": {
+    "message": "Очистить информацию обо всех моделях?"
+  },
+  "optModelInfoCleared": {
+    "message": "Информация о модели очищена"
   }
 }

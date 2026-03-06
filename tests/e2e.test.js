@@ -1,4 +1,4 @@
-const { startServer } = require('./mock-server');
+const { startServer, MOCK_ORG_PAGES } = require('./mock-server');
 const {
   launchBrowser,
   getServiceWorker,
@@ -910,14 +910,14 @@ describe('Options page — model add/delete', () => {
 // ---------------------------------------------------------------------------
 
 describe('Options page — icon caching', () => {
-  test('Clear info also clears icon cache', async () => {
-    // Pre-populate icon cache
+  test('Clear info clears only selected model info', async () => {
     await setLocalStorage(worker, {
       iconCache: { google: 'data:image/svg+xml,test', openai: 'data:image/svg+xml,test2' },
     });
     await setStorage(worker, {
       models: [
-        { id: 'google/gemini', context_length: 100000, org_icon: 'google' },
+        { id: 'google/gemini', context_length: 100000, org_icon: 'google', prompt_cost: '0.001' },
+        { id: 'openai/gpt-5', context_length: 128000, org_icon: 'openai', prompt_cost: '0.01' },
       ],
       model: 'google/gemini',
     });
@@ -925,20 +925,61 @@ describe('Options page — icon caching', () => {
     const page = await openOptionsPage(browser, extId);
     await page.waitForSelector('.model-item');
 
-    // Click clear info
+    // Click clear info (no confirm modal for single model)
     await page.click('#clearModelInfo');
+    await page.waitForSelector('.toast.show', { timeout: 5000 });
+
+    // Selected model (google/gemini) should have info cleared
+    const stored = await getStorage(worker, ['models']);
+    const google = stored.models.find((m) => m.id === 'google/gemini');
+    expect(google.context_length).toBeUndefined();
+    expect(google.prompt_cost).toBeUndefined();
+    expect(google.org_icon).toBeUndefined();
+
+    // Other model (openai/gpt-5) should still have info
+    const openai = stored.models.find((m) => m.id === 'openai/gpt-5');
+    expect(openai.context_length).toBe(128000);
+    expect(openai.prompt_cost).toBe('0.01');
+
+    // Icon cache: google should be removed (no other model uses it), openai should remain
+    const local = await getLocalStorage(worker, ['iconCache']);
+    expect(local.iconCache.google).toBeUndefined();
+    expect(local.iconCache.openai).toBe('data:image/svg+xml,test2');
+
+    await page.close();
+  });
+
+  test('Clear All Info clears all models with confirm', async () => {
+    await setLocalStorage(worker, {
+      iconCache: { google: 'data:image/svg+xml,test', openai: 'data:image/svg+xml,test2' },
+    });
+    await setStorage(worker, {
+      models: [
+        { id: 'google/gemini', context_length: 100000, org_icon: 'google' },
+        { id: 'openai/gpt-5', context_length: 128000, org_icon: 'openai' },
+      ],
+      model: 'google/gemini',
+    });
+
+    const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('.model-item');
+
+    // Click "Clear All Info"
+    await page.click('#clearAllModelInfo');
     await page.waitForSelector('.modal-overlay.visible', { timeout: 3000 });
     await page.click('#confirmModalConfirm');
-
     await page.waitForSelector('.toast.show', { timeout: 5000 });
+
+    // All models should have info cleared
+    const stored = await getStorage(worker, ['models']);
+    for (const m of stored.models) {
+      expect(m.context_length).toBeUndefined();
+      expect(m.org_icon).toBeUndefined();
+    }
 
     // Icon cache should be empty
     const local = await getLocalStorage(worker, ['iconCache']);
     expect(local.iconCache).toEqual({});
-
-    // Model context_length should be cleared
-    const stored = await getStorage(worker, ['models']);
-    expect(stored.models[0].context_length).toBeUndefined();
 
     await page.close();
   });
@@ -976,5 +1017,88 @@ describe('Options page — icon caching', () => {
     expect(display).not.toBe('none');
 
     await page.close();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 12: Icon detection — resolveOrgIcon regex tests
+// ---------------------------------------------------------------------------
+
+describe('Icon detection — resolveOrgIcon', () => {
+  test('Extracts favicon URL for x-ai from src attribute', async () => {
+    // Test the regex used in background.js resolveOrgIcon against mock HTML
+    const html = MOCK_ORG_PAGES['x-ai'];
+    const result = await worker.evaluate((htmlStr) => {
+      const ownIcon = htmlStr.match(/\/images\/icons\/([^"'\s]+\.(?:svg|png))/);
+      if (ownIcon) return { type: 'own', url: ownIcon[0] };
+      const favicon = htmlStr.match(/src="(https:\/\/t0\.gstatic\.com\/faviconV2[^"]*)"/);
+      if (favicon) return { type: 'favicon', url: favicon[1].replace(/&amp;/g, '&') };
+      return null;
+    }, html);
+
+    expect(result).not.toBeNull();
+    expect(result.type).toBe('favicon');
+    expect(result.url).toContain('url=https://x.ai/');
+    expect(result.url).not.toContain('&amp;');
+    expect(result.url).toContain('&size=256');
+  });
+
+  test('Extracts favicon URL for z-ai from src attribute', async () => {
+    const html = MOCK_ORG_PAGES['z-ai'];
+    const result = await worker.evaluate((htmlStr) => {
+      const ownIcon = htmlStr.match(/\/images\/icons\/([^"'\s]+\.(?:svg|png))/);
+      if (ownIcon) return { type: 'own', url: ownIcon[0] };
+      const favicon = htmlStr.match(/src="(https:\/\/t0\.gstatic\.com\/faviconV2[^"]*)"/);
+      if (favicon) return { type: 'favicon', url: favicon[1].replace(/&amp;/g, '&') };
+      return null;
+    }, html);
+
+    expect(result).not.toBeNull();
+    expect(result.type).toBe('favicon');
+    expect(result.url).toContain('url=https://z.ai/');
+    expect(result.url).not.toContain('&amp;');
+  });
+
+  test('Extracts favicon URL for moonshotai from src attribute', async () => {
+    const html = MOCK_ORG_PAGES['moonshotai'];
+    const result = await worker.evaluate((htmlStr) => {
+      const ownIcon = htmlStr.match(/\/images\/icons\/([^"'\s]+\.(?:svg|png))/);
+      if (ownIcon) return { type: 'own', url: ownIcon[0] };
+      const favicon = htmlStr.match(/src="(https:\/\/t0\.gstatic\.com\/faviconV2[^"]*)"/);
+      if (favicon) return { type: 'favicon', url: favicon[1].replace(/&amp;/g, '&') };
+      return null;
+    }, html);
+
+    expect(result).not.toBeNull();
+    expect(result.type).toBe('favicon');
+    expect(result.url).toContain('url=https://moonshot.ai');
+    expect(result.url).not.toContain('&amp;');
+  });
+
+  test('Prefers /images/icons/ over favicon for major orgs', async () => {
+    const html = MOCK_ORG_PAGES['google'];
+    const result = await worker.evaluate((htmlStr) => {
+      const ownIcon = htmlStr.match(/\/images\/icons\/([^"'\s]+\.(?:svg|png))/);
+      if (ownIcon) return { type: 'own', url: ownIcon[0] };
+      const favicon = htmlStr.match(/src="(https:\/\/t0\.gstatic\.com\/faviconV2[^"]*)"/);
+      if (favicon) return { type: 'favicon', url: favicon[1].replace(/&amp;/g, '&') };
+      return null;
+    }, html);
+
+    expect(result).not.toBeNull();
+    expect(result.type).toBe('own');
+    expect(result.url).toBe('/images/icons/google.svg');
+  });
+
+  test('Favicon URLs with &amp; entities are properly decoded', async () => {
+    // Simulate HTML with &amp; entities (as browsers serve them)
+    const htmlWithEntities = '<img src="https://t0.gstatic.com/faviconV2?client=SOCIAL&amp;type=FAVICON&amp;url=https://test.com&amp;size=256" />';
+    const result = await worker.evaluate((htmlStr) => {
+      const favicon = htmlStr.match(/src="(https:\/\/t0\.gstatic\.com\/faviconV2[^"]*)"/);
+      if (favicon) return favicon[1].replace(/&amp;/g, '&');
+      return null;
+    }, htmlWithEntities);
+
+    expect(result).toBe('https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&url=https://test.com&size=256');
   });
 });

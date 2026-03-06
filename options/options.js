@@ -18,12 +18,17 @@ Text to polish:
 {{text}}`;
 
 const PRESET_MODELS = [
-  'google/gemini-3-flash-preview',
-  'google/gemini-3.1-pro-preview',
   'qwen/qwen3.5-122b-a10b',
-  'openai/gpt-5.2',
+  'openai/gpt-5-mini',
+  'openai/gpt-5.4',
+  'google/gemini-3.1-flash-lite-preview',
+  'google/gemini-3.1-pro-preview',
+  'anthropic/claude-haiku-4.5',
+  'anthropic/claude-sonnet-4.6',
   'anthropic/claude-opus-4.6',
-  'anthropic/claude-sonnet-4.6'
+  'z-ai/glm-5',
+  'moonshotai/kimi-k2.5',
+  'x-ai/grok-4.1-fast'
 ];
 
 const $apiUrl = document.getElementById('apiUrl');
@@ -55,6 +60,7 @@ document.getElementById('addModelBtn').textContent = i18n('optModelAdd');
 document.getElementById('deleteModelBtn').textContent = i18n('optModelDelete');
 document.getElementById('fetchModelInfo').textContent = i18n('optModelInfoFetch');
 document.getElementById('clearModelInfo').textContent = i18n('optModelClearInfo');
+document.getElementById('clearAllModelInfo').textContent = i18n('optModelClearAllInfo');
 document.getElementById('bulkEditBtn').textContent = i18n('optModelBulkEdit');
 document.getElementById('hintBulkEdit').textContent = i18n('optModelBulkEditHint');
 document.getElementById('bulkEditCancel').textContent = i18n('optCancel');
@@ -286,13 +292,41 @@ document.getElementById('deleteModelBtn').addEventListener('click', async () => 
   persistModels();
 });
 
-// ---- Clear all model info ----
+// ---- Clear selected model info ----
 
-document.getElementById('clearModelInfo').addEventListener('click', async () => {
+document.getElementById('clearModelInfo').addEventListener('click', () => {
+  if (!selectedModelId) {
+    toast(i18n('optModelNoneSelected'));
+    return;
+  }
+  const entry = models.find((m) => m.id === selectedModelId);
+  if (!entry) return;
+
+  const orgSlug = entry.org_icon || entry.id.split('/')[0];
+  delete entry.context_length;
+  delete entry.prompt_cost;
+  delete entry.completion_cost;
+  delete entry.org_icon;
+
+  // Remove this org's icon from cache if no other model uses it
+  const othersUseSlug = models.some((m) => m.id !== selectedModelId && (m.org_icon || m.id.split('/')[0]) === orgSlug);
+  if (!othersUseSlug && iconCache[orgSlug]) {
+    delete iconCache[orgSlug];
+    chrome.storage.local.set({ iconCache });
+  }
+
+  renderModelList();
+  persistModels();
+  toast(i18n('optModelInfoCleared'));
+});
+
+// ---- Clear ALL model info ----
+
+document.getElementById('clearAllModelInfo').addEventListener('click', async () => {
   if (models.length === 0) return;
   const confirmed = await showConfirmModal(
-    i18n('optModelClearInfoConfirm'),
-    i18n('optModelClearInfo')
+    i18n('optModelClearAllInfoConfirm'),
+    i18n('optModelClearAllInfo')
   );
   if (!confirmed) return;
 
@@ -302,7 +336,6 @@ document.getElementById('clearModelInfo').addEventListener('click', async () => 
     delete m.completion_cost;
     delete m.org_icon;
   }
-  // Clear local icon cache too
   iconCache = {};
   chrome.storage.local.set({ iconCache: {} });
   renderModelList();

@@ -219,13 +219,18 @@ async function saveIconCache(cache) {
   });
 }
 
-async function resolveOrgIcon(orgSlug) {
-  // 1. Memory cache hit
-  if (orgIconCache[orgSlug]) return orgIconCache[orgSlug];
+function isFallbackIcon(dataUrl) {
+  // Fallback icons are generated SVGs with a single letter on a colored rect
+  return dataUrl && dataUrl.startsWith('data:image/svg+xml,') && dataUrl.includes('text-anchor');
+}
 
-  // 2. Local storage cache hit
+async function resolveOrgIcon(orgSlug) {
+  // 1. Memory cache hit (skip fallback icons — re-fetch real icon)
+  if (orgIconCache[orgSlug] && !isFallbackIcon(orgIconCache[orgSlug])) return orgIconCache[orgSlug];
+
+  // 2. Local storage cache hit (skip fallback icons)
   const stored = await loadIconCache();
-  if (stored[orgSlug]) {
+  if (stored[orgSlug] && !isFallbackIcon(stored[orgSlug])) {
     orgIconCache[orgSlug] = stored[orgSlug];
     return stored[orgSlug];
   }
@@ -241,10 +246,10 @@ async function resolveOrgIcon(orgSlug) {
       if (ownIcon) {
         iconUrl = `https://openrouter.ai${ownIcon[0]}`;
       } else {
-        // Fallback: Google favicon service URL embedded in the page
-        const favicon = html.match(/https:\/\/t0\.gstatic\.com\/faviconV2[^"'\s]+/);
+        // Fallback: Google favicon service URL in src="..." attribute
+        const favicon = html.match(/src="(https:\/\/t0\.gstatic\.com\/faviconV2[^"]*)"/);
         if (favicon) {
-          iconUrl = favicon[0].replace(/&amp;/g, '&');
+          iconUrl = favicon[1].replace(/&amp;/g, '&');
         }
       }
     }

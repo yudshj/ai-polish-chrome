@@ -188,8 +188,14 @@
   "optModelClearInfo": {
     "message": "Info löschen"
   },
+  "optModelClearAllInfo": {
+    "message": "Alle Infos löschen"
+  },
   "optModelClearInfoConfirm": {
     "message": "Alle gespeicherten Modellinformationen (Kontextlänge, Kosten, Icons) löschen?"
+  },
+  "optModelClearAllInfoConfirm": {
+    "message": "Alle gespeicherten Modellinformationen für alle Modelle löschen?"
   },
   "optModelInfoCleared": {
     "message": "Modellinformationen gelöscht"

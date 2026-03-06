@@ -151,5 +151,20 @@
   },
   "optModelBulkEditHint": {
     "message": "Um ID de modelo por linha. As infos existentes são mantidas."
+  },
+  "optModelClearInfo": {
+    "message": "Limpar info"
+  },
+  "optModelClearAllInfo": {
+    "message": "Limpar todas as infos"
+  },
+  "optModelClearInfoConfirm": {
+    "message": "Limpar as informações do modelo (contexto, custos, ícone)?"
+  },
+  "optModelClearAllInfoConfirm": {
+    "message": "Limpar todas as informações de todos os modelos?"
+  },
+  "optModelInfoCleared": {
+    "message": "Informações do modelo removidas"
   }
 }

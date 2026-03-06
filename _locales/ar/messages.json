@@ -188,8 +188,14 @@
   "optModelClearInfo": {
     "message": "مسح المعلومات"
   },
+  "optModelClearAllInfo": {
+    "message": "مسح جميع المعلومات"
+  },
   "optModelClearInfoConfirm": {
     "message": "مسح جميع معلومات النماذج المخزنة (طول السياق، التكلفة، الأيقونات)؟"
+  },
+  "optModelClearAllInfoConfirm": {
+    "message": "مسح جميع معلومات النماذج المخزنة لجميع النماذج؟"
   },
   "optModelInfoCleared": {
     "message": "تم مسح معلومات النماذج"

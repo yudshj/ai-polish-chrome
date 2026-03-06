@@ -27,6 +27,14 @@ const TEST_HTML_BOTTOM = `<!DOCTYPE html>
 </body>
 </html>`;
 
+// Mock org pages mimicking OpenRouter's HTML structure
+const MOCK_ORG_PAGES = {
+  'x-ai': `<html><body><img src="https://t0.gstatic.com/faviconV2?client=SOCIAL&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;url=https://x.ai/&amp;size=256" /></body></html>`,
+  'z-ai': `<html><body><img src="https://t0.gstatic.com/faviconV2?client=SOCIAL&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;url=https://z.ai/&amp;size=256" /></body></html>`,
+  'moonshotai': `<html><body><img src="https://t0.gstatic.com/faviconV2?client=SOCIAL&amp;type=FAVICON&amp;fallback_opts=TYPE,SIZE,URL&amp;url=https://moonshot.ai&amp;size=256" /></body></html>`,
+  'google': `<html><body><img src="/images/icons/google.svg" /></body></html>`,
+};
+
 const MOCK_MODELS = {
   data: [
     {
@@ -84,6 +92,26 @@ function startServer() {
       if (req.method === 'GET' && req.url === '/last-request') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(lastRequestBody || {}));
+        return;
+      }
+
+      // Mock org pages (for icon detection tests)
+      if (req.method === 'GET' && req.url.startsWith('/org/')) {
+        const orgSlug = req.url.slice(5); // remove '/org/'
+        const html = MOCK_ORG_PAGES[orgSlug];
+        if (html) {
+          res.writeHead(200, { 'Content-Type': 'text/html' });
+          res.end(html);
+          return;
+        }
+      }
+
+      // Mock favicon image (returns a 1x1 PNG)
+      if (req.method === 'GET' && req.url === '/mock-favicon.png') {
+        // 1x1 red PNG
+        const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', 'base64');
+        res.writeHead(200, { 'Content-Type': 'image/png' });
+        res.end(png);
         return;
       }
 
@@ -168,4 +196,4 @@ function startServer() {
   });
 }
 
-module.exports = { startServer };
+module.exports = { startServer, MOCK_ORG_PAGES };

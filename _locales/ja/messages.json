@@ -188,8 +188,14 @@
   "optModelClearInfo": {
     "message": "情報をクリア"
   },
+  "optModelClearAllInfo": {
+    "message": "全情報をクリア"
+  },
   "optModelClearInfoConfirm": {
     "message": "キャッシュされたモデル情報（コンテキスト長、料金、アイコン）をすべてクリアしますか？"
+  },
+  "optModelClearAllInfoConfirm": {
+    "message": "すべてのモデルのキャッシュ情報（コンテキスト長、料金、アイコン）をクリアしますか？"
   },
   "optModelInfoCleared": {
     "message": "モデル情報をクリアしました"
