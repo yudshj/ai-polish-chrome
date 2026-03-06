@@ -181,5 +181,8 @@
   },
   "optModelCompCost": {
     "message": "输出"
+  },
+  "optCancel": {
+    "message": "取消"
   }
 }

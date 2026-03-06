@@ -202,6 +202,86 @@
       color: #e74c3c;
       margin-top: 6px;
     }
+    /* Inline add row */
+    .model-add-row {
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      gap: 8px;
+      border-top: 1px solid #f0f0f0;
+      background: #fff;
+    }
+    .model-add-row input {
+      flex: 1;
+      padding: 7px 10px;
+      border: 1.5px solid #6C63FF;
+      border-radius: 8px;
+      font-size: 13px;
+      background: #fff;
+      outline: none;
+    }
+    .model-add-row input::placeholder { color: #bbb; }
+    .add-row-btn {
+      padding: 5px 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .add-row-btn:hover { opacity: 0.8; }
+    .add-row-ok { background: #6C63FF; color: #fff; }
+    .add-row-cancel { background: #f0f0f0; color: #666; }
+    /* Confirm modal overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(2px);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal-box {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      padding: 28px 32px 22px;
+      max-width: 340px;
+      width: 90%;
+      text-align: center;
+    }
+    .modal-box p {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .modal-box .modal-model-name {
+      font-weight: 700;
+      color: #6C63FF;
+      word-break: break-all;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .modal-actions button {
+      padding: 9px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .modal-actions button:hover { opacity: 0.85; }
+    .modal-cancel-btn { background: #f0f0f0; color: #555; }
+    .modal-confirm-btn { background: #e74c3c; color: #fff; }
     .btn-row {
       display: flex;
       gap: 10px;
@@ -321,6 +401,17 @@
 
     <div class="btn-row">
       <button class="btn btn-primary" id="save"></button>
+    </div>
+  </div>
+
+  <!-- Delete confirm modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+      <p id="deleteModalText"></p>
+      <div class="modal-actions">
+        <button class="modal-cancel-btn" id="deleteModalCancel"></button>
+        <button class="modal-confirm-btn" id="deleteModalConfirm"></button>
+      </div>
     </div>
   </div>
 

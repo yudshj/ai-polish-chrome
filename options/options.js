@@ -35,6 +35,7 @@ const $modelList = document.getElementById('modelList');
 // State: each model entry has { id, context_length?, prompt_cost?, completion_cost?, org_icon? }
 let models = [];
 let selectedModelId = '';
+let addRowActive = false;
 
 // ---- i18n: Apply labels ----
 
@@ -56,6 +57,8 @@ document.getElementById('resetPrompt').textContent = i18n('optResetPrompt');
 document.getElementById('cardSkipSites').textContent = i18n('optSkipSites');
 document.getElementById('hintSkipSites').textContent = i18n('optSkipSitesHint');
 document.getElementById('save').textContent = i18n('optSave');
+document.getElementById('deleteModalCancel').textContent = i18n('optCancel');
+document.getElementById('deleteModalConfirm').textContent = i18n('optModelDelete');
 
 // ---- Persist models to storage ----
 
@@ -73,12 +76,15 @@ function renderModelList() {
     item.className = 'model-item' + (m.id === selectedModelId ? ' selected' : '');
 
     // Org icon
+    const icon = document.createElement('img');
+    icon.className = 'model-item-icon';
     if (m.org_icon) {
-      const icon = document.createElement('img');
-      icon.className = 'model-item-icon';
       icon.src = m.org_icon;
-      item.appendChild(icon);
+      icon.onerror = () => { icon.style.display = 'none'; };
+    } else {
+      icon.style.display = 'none';
     }
+    item.appendChild(icon);
 
     const name = document.createElement('span');
     name.className = 'model-item-name';
@@ -115,61 +121,129 @@ function renderModelList() {
   });
 }
 
-// ---- Add model ----
+// ---- Add model (inline row) ----
 
-document.getElementById('addModelBtn').addEventListener('click', () => {
-  const modelId = prompt(i18n('optModelAddPrompt'));
-  if (!modelId || !modelId.trim()) return;
-  const id = modelId.trim();
+function showAddRow() {
+  if (addRowActive) return;
+  addRowActive = true;
 
-  if (models.some((m) => m.id === id)) {
-    toast(i18n('optModelAddDuplicate'));
-    return;
+  const row = document.createElement('div');
+  row.className = 'model-add-row';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = i18n('optModelAddPrompt');
+  row.appendChild(input);
+
+  const okBtn = document.createElement('button');
+  okBtn.className = 'add-row-btn add-row-ok';
+  okBtn.textContent = 'OK';
+  row.appendChild(okBtn);
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'add-row-btn add-row-cancel';
+  cancelBtn.textContent = '\u2715';
+  row.appendChild(cancelBtn);
+
+  $modelList.appendChild(row);
+  input.focus();
+  // Scroll to bottom so the input is visible
+  $modelList.scrollTop = $modelList.scrollHeight;
+
+  function commit() {
+    const id = input.value.trim();
+    if (!id) { dismiss(); return; }
+    if (models.some((m) => m.id === id)) {
+      toast(i18n('optModelAddDuplicate'));
+      input.focus();
+      return;
+    }
+    models.push({ id });
+    selectedModelId = id;
+    dismiss();
+    renderModelList();
+    fetchSingleModelInfo(id);
   }
 
-  models.push({ id });
-  selectedModelId = id;
-  renderModelList();
-  // Auto-fetch info for the new model (single)
-  fetchSingleModelInfo(id);
-});
+  function dismiss() {
+    row.remove();
+    addRowActive = false;
+  }
 
-// ---- Delete model ----
+  okBtn.addEventListener('click', commit);
+  cancelBtn.addEventListener('click', dismiss);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') commit();
+    if (e.key === 'Escape') dismiss();
+  });
+}
 
-document.getElementById('deleteModelBtn').addEventListener('click', () => {
+document.getElementById('addModelBtn').addEventListener('click', showAddRow);
+
+// ---- Delete model (HTML modal) ----
+
+function showDeleteModal() {
   if (!selectedModelId) {
     toast(i18n('optModelNoneSelected'));
     return;
   }
-  if (!confirm(i18n('optModelDeleteConfirm'))) return;
+  const modal = document.getElementById('deleteModal');
+  const textEl = document.getElementById('deleteModalText');
+  textEl.innerHTML = i18n('optModelDeleteConfirm') + '<br><span class="modal-model-name">' +
+    selectedModelId.replace(/</g, '&lt;') + '</span>';
+  modal.classList.add('visible');
+}
 
+document.getElementById('deleteModelBtn').addEventListener('click', showDeleteModal);
+
+document.getElementById('deleteModalCancel').addEventListener('click', () => {
+  document.getElementById('deleteModal').classList.remove('visible');
+});
+
+document.getElementById('deleteModalConfirm').addEventListener('click', () => {
+  document.getElementById('deleteModal').classList.remove('visible');
   models = models.filter((m) => m.id !== selectedModelId);
   selectedModelId = models.length > 0 ? models[0].id : '';
   renderModelList();
   persistModels();
 });
 
-// ---- Fetch model info (batch for all models) ----
+// Close modal on overlay click
+document.getElementById('deleteModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.remove('visible');
+  }
+});
+
+// ---- Fetch model info (smart: unfetched + force selected) ----
 
 document.getElementById('fetchModelInfo').addEventListener('click', () => {
   if (models.length === 0) {
     toast(i18n('optModelNoneSelected'));
     return;
   }
-  batchFetchModelInfo();
+  smartFetchModelInfo();
 });
 
-function batchFetchModelInfo() {
+function smartFetchModelInfo() {
   const fetchBtn = document.getElementById('fetchModelInfo');
   const errEl = document.getElementById('modelInfoError');
+
+  // Collect: models without info + currently selected model (force refresh)
+  const idsToFetch = models
+    .filter((m) => !m.context_length || m.id === selectedModelId)
+    .map((m) => m.id);
+
+  if (idsToFetch.length === 0) {
+    toast(i18n('optSaved'));
+    return;
+  }
 
   fetchBtn.disabled = true;
   fetchBtn.textContent = i18n('optModelInfoFetching');
   errEl.style.display = 'none';
 
-  const modelIds = models.map((m) => m.id);
-
-  chrome.runtime.sendMessage({ action: 'batchFetchModelInfo', modelIds }, (res) => {
+  chrome.runtime.sendMessage({ action: 'batchFetchModelInfo', modelIds: idsToFetch }, (res) => {
     fetchBtn.disabled = false;
     fetchBtn.textContent = i18n('optModelInfoFetch');
 

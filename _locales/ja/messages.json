@@ -181,5 +181,8 @@
   },
   "optModelCompCost": {
     "message": "出力"
+  },
+  "optCancel": {
+    "message": "キャンセル"
   }
 }

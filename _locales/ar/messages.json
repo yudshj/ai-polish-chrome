@@ -181,5 +181,8 @@
   },
   "optModelCompCost": {
     "message": "إخراج"
+  },
+  "optCancel": {
+    "message": "إلغاء"
   }
 }

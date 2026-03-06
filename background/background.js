@@ -174,7 +174,7 @@ async function handlePolishStream(text, targetLanguage, port) {
   }
 }
 
-function generateOrgIcon(orgName) {
+function generateFallbackIcon(orgName) {
   const colors = ['#4285F4','#EA4335','#34A853','#FBBC04','#8B5CF6','#EC4899','#06B6D4','#F97316','#6366F1','#14B8A6'];
   let hash = 0;
   for (let i = 0; i < orgName.length; i++) {
@@ -184,6 +184,39 @@ function generateOrgIcon(orgName) {
   const color = colors[Math.abs(hash) % colors.length];
   const letter = orgName.charAt(0).toUpperCase();
   return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><rect width="24" height="24" rx="6" fill="${color}"/><text x="12" y="16.5" text-anchor="middle" font-size="13" font-family="system-ui,sans-serif" fill="#fff" font-weight="700">${letter}</text></svg>`)}`;
+}
+
+// Icon URL cache: orgDisplayName -> url (persists within service worker lifetime)
+const orgIconCache = {};
+
+async function resolveOrgIcon(orgDisplayName) {
+  if (orgIconCache[orgDisplayName]) return orgIconCache[orgDisplayName];
+
+  // Try OpenRouter's icon CDN: /images/icons/{OrgDisplayName}.svg
+  const iconUrl = `https://openrouter.ai/images/icons/${encodeURIComponent(orgDisplayName)}.svg`;
+  try {
+    const res = await fetch(iconUrl, { method: 'HEAD' });
+    const ct = res.headers.get('content-type') || '';
+    if (res.ok && ct.includes('image/svg+xml')) {
+      orgIconCache[orgDisplayName] = iconUrl;
+      return iconUrl;
+    }
+  } catch {}
+
+  const fallback = generateFallbackIcon(orgDisplayName);
+  orgIconCache[orgDisplayName] = fallback;
+  return fallback;
+}
+
+function extractOrgDisplayName(model) {
+  // model.name is like "Google: Gemini 3 Flash Preview"
+  if (model?.name) {
+    const idx = model.name.indexOf(':');
+    if (idx > 0) return model.name.substring(0, idx).trim();
+  }
+  // Fallback: capitalize the org slug from model ID
+  const slug = (model?.id || '').split('/')[0];
+  return slug.charAt(0).toUpperCase() + slug.slice(1);
 }
 
 async function handleFetchModelInfo(modelId) {
@@ -197,14 +230,15 @@ async function handleFetchModelInfo(modelId) {
     if (!model) {
       return { error: 'Model not found' };
     }
-    const org = modelId.split('/')[0] || modelId;
+    const orgName = extractOrgDisplayName(model);
+    const org_icon = await resolveOrgIcon(orgName);
     return {
       id: model.id,
       name: model.name,
       context_length: model.context_length,
       prompt_cost: model.pricing?.prompt,
       completion_cost: model.pricing?.completion,
-      org_icon: generateOrgIcon(org)
+      org_icon
     };
   } catch (err) {
     return { error: err.message };
@@ -223,17 +257,20 @@ async function handleBatchFetchModelInfo(modelIds) {
     const results = {};
     for (const modelId of modelIds) {
       const model = allModels.find((m) => m.id === modelId);
-      const org = modelId.split('/')[0] || modelId;
       if (model) {
+        const orgName = extractOrgDisplayName(model);
+        const org_icon = await resolveOrgIcon(orgName);
         results[modelId] = {
           context_length: model.context_length,
           prompt_cost: model.pricing?.prompt,
           completion_cost: model.pricing?.completion,
-          org_icon: generateOrgIcon(org)
+          org_icon
         };
       } else {
-        // Still generate icon even if model not found on OpenRouter
-        results[modelId] = { org_icon: generateOrgIcon(org), notFound: true };
+        const slug = modelId.split('/')[0] || modelId;
+        const fallbackName = slug.charAt(0).toUpperCase() + slug.slice(1);
+        const org_icon = await resolveOrgIcon(fallbackName);
+        results[modelId] = { org_icon, notFound: true };
       }
     }
     return { results };
@@ -261,7 +298,7 @@ async function handleTestApi(apiUrl, apiKey, model) {
         messages: [
           { role: 'user', content: 'Hi' }
         ],
-        max_tokens: 1,
+        max_tokens: 5,
         stream: false
       })
     });
