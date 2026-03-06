@@ -154,5 +154,32 @@
   },
   "optSkipSitesHint": {
     "message": "1行に1つのホスト名（例：example.com）"
+  },
+  "optModelAdd": {
+    "message": "追加"
+  },
+  "optModelDelete": {
+    "message": "削除"
+  },
+  "optModelAddPrompt": {
+    "message": "モデルIDを入力（例：openai/gpt-4o）"
+  },
+  "optModelAddDuplicate": {
+    "message": "モデルは既に存在します"
+  },
+  "optModelDeleteConfirm": {
+    "message": "選択したモデルを削除しますか？"
+  },
+  "optModelNoneSelected": {
+    "message": "モデルが選択されていません"
+  },
+  "optModelCtx": {
+    "message": "コンテキスト"
+  },
+  "optModelPromptCost": {
+    "message": "入力"
+  },
+  "optModelCompCost": {
+    "message": "出力"
   }
 }

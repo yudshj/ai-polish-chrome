@@ -55,6 +55,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'fetchModelInfo') {
     handleFetchModelInfo(request.modelId).then(sendResponse);
     return true;
+  } else if (request.action === 'batchFetchModelInfo') {
+    handleBatchFetchModelInfo(request.modelIds).then(sendResponse);
+    return true;
   } else if (request.action === 'testApi') {
     handleTestApi(request.apiUrl, request.apiKey, request.model).then(sendResponse);
     return true;
@@ -171,6 +174,18 @@ async function handlePolishStream(text, targetLanguage, port) {
   }
 }
 
+function generateOrgIcon(orgName) {
+  const colors = ['#4285F4','#EA4335','#34A853','#FBBC04','#8B5CF6','#EC4899','#06B6D4','#F97316','#6366F1','#14B8A6'];
+  let hash = 0;
+  for (let i = 0; i < orgName.length; i++) {
+    hash = ((hash << 5) - hash) + orgName.charCodeAt(i);
+    hash = hash & hash;
+  }
+  const color = colors[Math.abs(hash) % colors.length];
+  const letter = orgName.charAt(0).toUpperCase();
+  return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><rect width="24" height="24" rx="6" fill="${color}"/><text x="12" y="16.5" text-anchor="middle" font-size="13" font-family="system-ui,sans-serif" fill="#fff" font-weight="700">${letter}</text></svg>`)}`;
+}
+
 async function handleFetchModelInfo(modelId) {
   try {
     const response = await fetch('https://openrouter.ai/api/v1/models');
@@ -182,13 +197,46 @@ async function handleFetchModelInfo(modelId) {
     if (!model) {
       return { error: 'Model not found' };
     }
+    const org = modelId.split('/')[0] || modelId;
     return {
       id: model.id,
       name: model.name,
       context_length: model.context_length,
       prompt_cost: model.pricing?.prompt,
-      completion_cost: model.pricing?.completion
+      completion_cost: model.pricing?.completion,
+      org_icon: generateOrgIcon(org)
     };
+  } catch (err) {
+    return { error: err.message };
+  }
+}
+
+async function handleBatchFetchModelInfo(modelIds) {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    const allModels = data.data || [];
+
+    const results = {};
+    for (const modelId of modelIds) {
+      const model = allModels.find((m) => m.id === modelId);
+      const org = modelId.split('/')[0] || modelId;
+      if (model) {
+        results[modelId] = {
+          context_length: model.context_length,
+          prompt_cost: model.pricing?.prompt,
+          completion_cost: model.pricing?.completion,
+          org_icon: generateOrgIcon(org)
+        };
+      } else {
+        // Still generate icon even if model not found on OpenRouter
+        results[modelId] = { org_icon: generateOrgIcon(org), notFound: true };
+      }
+    }
+    return { results };
   } catch (err) {
     return { error: err.message };
   }

@@ -28,10 +28,13 @@ const PRESET_MODELS = [
 
 const $apiUrl = document.getElementById('apiUrl');
 const $apiKey = document.getElementById('apiKey');
-const $modelSelect = document.getElementById('modelSelect');
-const $customModel = document.getElementById('customModel');
 const $prompt = document.getElementById('prompt');
 const $skipSitesText = document.getElementById('skipSitesText');
+const $modelList = document.getElementById('modelList');
+
+// State: each model entry has { id, context_length?, prompt_cost?, completion_cost?, org_icon? }
+let models = [];
+let selectedModelId = '';
 
 // ---- i18n: Apply labels ----
 
@@ -43,12 +46,9 @@ document.getElementById('hintApiUrl').textContent = i18n('optApiUrlHint');
 document.getElementById('labelApiKey').textContent = i18n('optApiKey');
 document.getElementById('testApi').textContent = i18n('optTestApi');
 document.getElementById('labelModel').textContent = i18n('optModel');
-document.getElementById('optCustomModel').textContent = i18n('optModelCustom');
-document.getElementById('modelInfoLabel').textContent = i18n('optModelInfo');
+document.getElementById('addModelBtn').textContent = i18n('optModelAdd');
+document.getElementById('deleteModelBtn').textContent = i18n('optModelDelete');
 document.getElementById('fetchModelInfo').textContent = i18n('optModelInfoFetch');
-document.getElementById('infoCtxLabel').textContent = i18n('optModelInfoContext');
-document.getElementById('infoPromptLabel').textContent = i18n('optModelInfoPromptCost');
-document.getElementById('infoCompLabel').textContent = i18n('optModelInfoCompletionCost');
 document.getElementById('cardPrompt').textContent = i18n('optPromptTemplate');
 document.getElementById('labelPrompt').textContent = i18n('optSystemPrompt');
 document.getElementById('hintPrompt').textContent = i18n('optPromptHint');
@@ -57,15 +57,170 @@ document.getElementById('cardSkipSites').textContent = i18n('optSkipSites');
 document.getElementById('hintSkipSites').textContent = i18n('optSkipSitesHint');
 document.getElementById('save').textContent = i18n('optSave');
 
-// ---- Model select toggle + auto-fetch ----
+// ---- Persist models to storage ----
 
-$modelSelect.addEventListener('change', () => {
-  const isCustom = $modelSelect.value === 'custom';
-  $customModel.style.display = isCustom ? 'block' : 'none';
-  if (!isCustom) {
-    fetchModelInfo($modelSelect.value);
+function persistModels() {
+  chrome.storage.sync.set({ models, model: selectedModelId });
+}
+
+// ---- Model list rendering ----
+
+function renderModelList() {
+  $modelList.innerHTML = '';
+
+  models.forEach((m) => {
+    const item = document.createElement('div');
+    item.className = 'model-item' + (m.id === selectedModelId ? ' selected' : '');
+
+    // Org icon
+    if (m.org_icon) {
+      const icon = document.createElement('img');
+      icon.className = 'model-item-icon';
+      icon.src = m.org_icon;
+      item.appendChild(icon);
+    }
+
+    const name = document.createElement('span');
+    name.className = 'model-item-name';
+    name.textContent = m.id;
+    item.appendChild(name);
+
+    const meta = document.createElement('span');
+    meta.className = 'model-item-meta';
+
+    if (m.context_length) {
+      const ctx = document.createElement('span');
+      ctx.textContent = i18n('optModelCtx') + ': ' + (m.context_length / 1000) + 'k';
+      meta.appendChild(ctx);
+    }
+    if (m.prompt_cost) {
+      const pc = document.createElement('span');
+      pc.textContent = i18n('optModelPromptCost') + ' $' + (parseFloat(m.prompt_cost) * 1000000).toFixed(2);
+      meta.appendChild(pc);
+    }
+    if (m.completion_cost) {
+      const cc = document.createElement('span');
+      cc.textContent = i18n('optModelCompCost') + ' $' + (parseFloat(m.completion_cost) * 1000000).toFixed(2);
+      meta.appendChild(cc);
+    }
+
+    item.appendChild(meta);
+
+    item.addEventListener('click', () => {
+      selectedModelId = m.id;
+      renderModelList();
+    });
+
+    $modelList.appendChild(item);
+  });
+}
+
+// ---- Add model ----
+
+document.getElementById('addModelBtn').addEventListener('click', () => {
+  const modelId = prompt(i18n('optModelAddPrompt'));
+  if (!modelId || !modelId.trim()) return;
+  const id = modelId.trim();
+
+  if (models.some((m) => m.id === id)) {
+    toast(i18n('optModelAddDuplicate'));
+    return;
   }
+
+  models.push({ id });
+  selectedModelId = id;
+  renderModelList();
+  // Auto-fetch info for the new model (single)
+  fetchSingleModelInfo(id);
 });
+
+// ---- Delete model ----
+
+document.getElementById('deleteModelBtn').addEventListener('click', () => {
+  if (!selectedModelId) {
+    toast(i18n('optModelNoneSelected'));
+    return;
+  }
+  if (!confirm(i18n('optModelDeleteConfirm'))) return;
+
+  models = models.filter((m) => m.id !== selectedModelId);
+  selectedModelId = models.length > 0 ? models[0].id : '';
+  renderModelList();
+  persistModels();
+});
+
+// ---- Fetch model info (batch for all models) ----
+
+document.getElementById('fetchModelInfo').addEventListener('click', () => {
+  if (models.length === 0) {
+    toast(i18n('optModelNoneSelected'));
+    return;
+  }
+  batchFetchModelInfo();
+});
+
+function batchFetchModelInfo() {
+  const fetchBtn = document.getElementById('fetchModelInfo');
+  const errEl = document.getElementById('modelInfoError');
+
+  fetchBtn.disabled = true;
+  fetchBtn.textContent = i18n('optModelInfoFetching');
+  errEl.style.display = 'none';
+
+  const modelIds = models.map((m) => m.id);
+
+  chrome.runtime.sendMessage({ action: 'batchFetchModelInfo', modelIds }, (res) => {
+    fetchBtn.disabled = false;
+    fetchBtn.textContent = i18n('optModelInfoFetch');
+
+    if (res?.error) {
+      errEl.textContent = i18n('optModelInfoError') + ': ' + res.error;
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const results = res.results || {};
+    for (const m of models) {
+      const info = results[m.id];
+      if (!info) continue;
+      m.org_icon = info.org_icon || m.org_icon;
+      if (!info.notFound) {
+        m.context_length = info.context_length || null;
+        m.prompt_cost = info.prompt_cost || null;
+        m.completion_cost = info.completion_cost || null;
+      }
+    }
+
+    renderModelList();
+    persistModels();
+    toast(i18n('optSaved'));
+  });
+}
+
+// Single model fetch (used when adding a new model)
+function fetchSingleModelInfo(modelId) {
+  const errEl = document.getElementById('modelInfoError');
+  errEl.style.display = 'none';
+
+  chrome.runtime.sendMessage({ action: 'fetchModelInfo', modelId }, (res) => {
+    if (res?.error) {
+      errEl.textContent = i18n('optModelInfoError') + ': ' + res.error;
+      errEl.style.display = 'block';
+    }
+
+    const entry = models.find((m) => m.id === modelId);
+    if (entry) {
+      if (!res?.error) {
+        entry.context_length = res.context_length || null;
+        entry.prompt_cost = res.prompt_cost || null;
+        entry.completion_cost = res.completion_cost || null;
+      }
+      entry.org_icon = res?.org_icon || entry.org_icon;
+      renderModelList();
+      persistModels();
+    }
+  });
+}
 
 // ---- Load ----
 
@@ -73,6 +228,7 @@ chrome.storage.sync.get({
   apiUrl: DEFAULT_API_URL,
   apiKey: '',
   model: PRESET_MODELS[0],
+  models: null,
   prompt: DEFAULT_PROMPT,
   skipSites: []
 }, (s) => {
@@ -81,24 +237,28 @@ chrome.storage.sync.get({
   $prompt.value = s.prompt;
   $skipSitesText.value = s.skipSites.join('\n');
 
-  if (PRESET_MODELS.includes(s.model)) {
-    $modelSelect.value = s.model;
-    fetchModelInfo(s.model);
+  // Migrate: if no models array saved yet, create from presets
+  if (s.models === null) {
+    models = PRESET_MODELS.map((id) => ({ id }));
+    if (!PRESET_MODELS.includes(s.model) && s.model) {
+      models.push({ id: s.model });
+    }
   } else {
-    $modelSelect.value = 'custom';
-    $customModel.value = s.model;
-    $customModel.style.display = 'block';
+    models = s.models;
   }
+
+  selectedModelId = s.model;
+  if (!models.some((m) => m.id === selectedModelId) && models.length > 0) {
+    selectedModelId = models[0].id;
+  }
+
+  renderModelList();
 });
 
 // ---- Save ----
 
 document.getElementById('save').addEventListener('click', () => {
-  const model = $modelSelect.value === 'custom'
-    ? $customModel.value.trim()
-    : $modelSelect.value;
-
-  if (!model) {
+  if (!selectedModelId) {
     toast(i18n('optSpecifyModel'));
     return;
   }
@@ -111,7 +271,8 @@ document.getElementById('save').addEventListener('click', () => {
   chrome.storage.sync.set({
     apiUrl: $apiUrl.value.trim() || DEFAULT_API_URL,
     apiKey: $apiKey.value.trim(),
-    model: model,
+    model: selectedModelId,
+    models: models,
     prompt: $prompt.value,
     skipSites: skipSites
   }, () => {
@@ -131,12 +292,13 @@ document.getElementById('resetPrompt').addEventListener('click', () => {
 document.getElementById('testApi').addEventListener('click', () => {
   const apiUrl = $apiUrl.value.trim() || DEFAULT_API_URL;
   const apiKey = $apiKey.value.trim();
-  const model = $modelSelect.value === 'custom'
-    ? $customModel.value.trim()
-    : $modelSelect.value;
 
   if (!apiKey) {
     toast(i18n('optTestNoKey'));
+    return;
+  }
+  if (!selectedModelId) {
+    toast(i18n('optSpecifyModel'));
     return;
   }
 
@@ -151,7 +313,7 @@ document.getElementById('testApi').addEventListener('click', () => {
     action: 'testApi',
     apiUrl,
     apiKey,
-    model
+    model: selectedModelId
   }, (res) => {
     testBtn.disabled = false;
     testBtn.textContent = i18n('optTestApi');
@@ -164,59 +326,6 @@ document.getElementById('testApi').addEventListener('click', () => {
       resultEl.className = 'test-result error';
     }
   });
-});
-
-// ---- Model info fetch ----
-
-function fetchModelInfo(modelId) {
-  if (!modelId || modelId === 'custom') return;
-
-  const fetchBtn = document.getElementById('fetchModelInfo');
-  const infoBody = document.getElementById('modelInfoBody');
-  const errEl = document.getElementById('modelInfoError');
-
-  fetchBtn.disabled = true;
-  fetchBtn.textContent = i18n('optModelInfoFetching');
-  errEl.style.display = 'none';
-  infoBody.classList.remove('visible');
-
-  chrome.runtime.sendMessage({ action: 'fetchModelInfo', modelId }, (res) => {
-    fetchBtn.disabled = false;
-    fetchBtn.textContent = i18n('optModelInfoFetch');
-
-    if (res?.error) {
-      errEl.textContent = i18n('optModelInfoError') + ': ' + res.error;
-      errEl.style.display = 'block';
-      return;
-    }
-
-    const perM = i18n('optModelInfoPerMTokens');
-
-    document.getElementById('infoCtxValue').textContent =
-      res.context_length ? res.context_length.toLocaleString() : '—';
-
-    document.getElementById('infoPromptValue').textContent = res.prompt_cost
-      ? '$' + (parseFloat(res.prompt_cost) * 1000000).toFixed(2) + ' ' + perM
-      : '—';
-
-    document.getElementById('infoCompValue').textContent = res.completion_cost
-      ? '$' + (parseFloat(res.completion_cost) * 1000000).toFixed(2) + ' ' + perM
-      : '—';
-
-    infoBody.classList.add('visible');
-  });
-}
-
-document.getElementById('fetchModelInfo').addEventListener('click', () => {
-  const modelId = $modelSelect.value === 'custom'
-    ? $customModel.value.trim()
-    : $modelSelect.value;
-
-  if (!modelId || modelId === 'custom') {
-    toast(i18n('optSpecifyModel'));
-    return;
-  }
-  fetchModelInfo(modelId);
 });
 
 // ---- Toast ----

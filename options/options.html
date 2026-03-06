@@ -101,12 +101,6 @@
       font-size: 12px;
       line-height: 1.6;
     }
-    .model-row {
-      display: flex;
-      gap: 8px;
-    }
-    .model-row select { flex: 1; }
-    .model-row input { flex: 1; }
     .hint {
       font-size: 11px;
       color: #aaa;
@@ -139,54 +133,71 @@
     }
     .test-result.success { color: #2e7d32; }
     .test-result.error { color: #e74c3c; }
-    /* Model info widget */
-    .model-info-box {
-      margin-top: 10px;
-      background: #f8f9fa;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      padding: 10px 14px;
-    }
-    .model-info-header {
+    /* Model list */
+    .model-toolbar {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 10px;
     }
-    .model-info-header span {
-      font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .fetch-btn {
-      padding: 3px 10px;
+    .model-toolbar-btn {
+      padding: 5px 12px;
       border: 1px solid #ddd;
-      border-radius: 6px;
+      border-radius: 8px;
       background: #fff;
-      font-size: 11px;
-      color: #6C63FF;
+      font-size: 12px;
       font-weight: 600;
+      color: #6C63FF;
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
     }
-    .fetch-btn:hover { background: #f0edff; border-color: #6C63FF; }
-    .fetch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .model-info-body {
-      display: none;
-      margin-top: 8px;
+    .model-toolbar-btn:hover { background: #f0edff; border-color: #6C63FF; }
+    .model-toolbar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .model-toolbar-btn.danger { color: #e74c3c; }
+    .model-toolbar-btn.danger:hover { background: #fef2f2; border-color: #e74c3c; }
+    .model-list {
+      border: 1px solid #eee;
+      border-radius: 10px;
+      max-height: 280px;
+      overflow-y: auto;
+      background: #fafafa;
     }
-    .model-info-body.visible { display: block; }
-    .info-row {
+    .model-item {
       display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: #555;
-      padding: 3px 0;
+      align-items: center;
+      padding: 9px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.1s;
+      gap: 10px;
     }
-    .info-row .info-label { color: #888; }
-    .info-row .info-value { font-weight: 600; color: #333; }
-    .info-error {
+    .model-item:last-child { border-bottom: none; }
+    .model-item:hover { background: #f0edff22; }
+    .model-item.selected { background: #f0edff; }
+    .model-item-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .model-item-name {
+      flex: 1;
+      font-size: 13px;
+      color: #333;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .model-item-meta {
+      display: flex;
+      gap: 8px;
+      font-size: 11px;
+      color: #999;
+      flex-shrink: 0;
+    }
+    .model-item-meta span { white-space: nowrap; }
+    .model-info-error {
       font-size: 11px;
       color: #e74c3c;
       margin-top: 6px;
@@ -276,41 +287,13 @@
 
       <div class="field">
         <label id="labelModel"></label>
-        <div class="model-row">
-          <select id="modelSelect">
-            <option value="google/gemini-3-flash-preview">google/gemini-3-flash-preview</option>
-            <option value="google/gemini-3.1-pro-preview">google/gemini-3.1-pro-preview</option>
-            <option value="qwen/qwen3.5-122b-a10b">qwen/qwen3.5-122b-a10b</option>
-            <option value="openai/gpt-5.2">openai/gpt-5.2</option>
-            <option value="anthropic/claude-opus-4.6">anthropic/claude-opus-4.6</option>
-            <option value="anthropic/claude-sonnet-4.6">anthropic/claude-sonnet-4.6</option>
-            <option value="custom" id="optCustomModel"></option>
-          </select>
-          <input type="text" id="customModel" placeholder="org/model-name" style="display:none">
+        <div class="model-toolbar">
+          <button class="model-toolbar-btn" id="addModelBtn"></button>
+          <button class="model-toolbar-btn danger" id="deleteModelBtn"></button>
+          <button class="model-toolbar-btn" id="fetchModelInfo"></button>
         </div>
-
-        <!-- Model Info Widget -->
-        <div class="model-info-box">
-          <div class="model-info-header">
-            <span id="modelInfoLabel"></span>
-            <button class="fetch-btn" id="fetchModelInfo"></button>
-          </div>
-          <div class="model-info-body" id="modelInfoBody">
-            <div class="info-row">
-              <span class="info-label" id="infoCtxLabel"></span>
-              <span class="info-value" id="infoCtxValue">—</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label" id="infoPromptLabel"></span>
-              <span class="info-value" id="infoPromptValue">—</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label" id="infoCompLabel"></span>
-              <span class="info-value" id="infoCompValue">—</span>
-            </div>
-          </div>
-          <div class="info-error" id="modelInfoError" style="display:none"></div>
-        </div>
+        <div class="model-list" id="modelList"></div>
+        <div class="model-info-error" id="modelInfoError" style="display:none"></div>
       </div>
     </div>
 

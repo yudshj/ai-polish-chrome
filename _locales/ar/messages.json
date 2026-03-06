@@ -154,5 +154,32 @@
   },
   "optSkipSitesHint": {
     "message": "اسم مضيف واحد لكل سطر، مثل example.com"
+  },
+  "optModelAdd": {
+    "message": "إضافة"
+  },
+  "optModelDelete": {
+    "message": "حذف"
+  },
+  "optModelAddPrompt": {
+    "message": "أدخل معرف النموذج (مثل openai/gpt-4o)"
+  },
+  "optModelAddDuplicate": {
+    "message": "النموذج موجود بالفعل"
+  },
+  "optModelDeleteConfirm": {
+    "message": "هل تريد حذف النموذج المحدد؟"
+  },
+  "optModelNoneSelected": {
+    "message": "لم يتم تحديد نموذج"
+  },
+  "optModelCtx": {
+    "message": "السياق"
+  },
+  "optModelPromptCost": {
+    "message": "إدخال"
+  },
+  "optModelCompCost": {
+    "message": "إخراج"
   }
 }

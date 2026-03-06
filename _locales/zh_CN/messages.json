@@ -154,5 +154,32 @@
   },
   "optSkipSitesHint": {
     "message": "每行一个主机名，例如 example.com"
+  },
+  "optModelAdd": {
+    "message": "添加"
+  },
+  "optModelDelete": {
+    "message": "删除"
+  },
+  "optModelAddPrompt": {
+    "message": "输入模型 ID（例如 openai/gpt-4o）"
+  },
+  "optModelAddDuplicate": {
+    "message": "模型已存在"
+  },
+  "optModelDeleteConfirm": {
+    "message": "确定删除选中的模型？"
+  },
+  "optModelNoneSelected": {
+    "message": "未选择模型"
+  },
+  "optModelCtx": {
+    "message": "上下文"
+  },
+  "optModelPromptCost": {
+    "message": "输入"
+  },
+  "optModelCompCost": {
+    "message": "输出"
   }
 }

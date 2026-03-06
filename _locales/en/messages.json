@@ -154,5 +154,32 @@
   },
   "optSkipSitesHint": {
     "message": "One hostname per line, e.g. example.com"
+  },
+  "optModelAdd": {
+    "message": "Add"
+  },
+  "optModelDelete": {
+    "message": "Delete"
+  },
+  "optModelAddPrompt": {
+    "message": "Enter model ID (e.g. openai/gpt-4o)"
+  },
+  "optModelAddDuplicate": {
+    "message": "Model already exists"
+  },
+  "optModelDeleteConfirm": {
+    "message": "Delete selected model?"
+  },
+  "optModelNoneSelected": {
+    "message": "No model selected"
+  },
+  "optModelCtx": {
+    "message": "Context"
+  },
+  "optModelPromptCost": {
+    "message": "In"
+  },
+  "optModelCompCost": {
+    "message": "Out"
   }
 }
