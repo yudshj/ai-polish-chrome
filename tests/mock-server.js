@@ -17,6 +17,16 @@ const TEST_HTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
+const TEST_HTML_BOTTOM = `<!DOCTYPE html>
+<html>
+<head><title>Test Page Bottom</title></head>
+<body style="margin:0; display:flex; flex-direction:column; height:100vh;">
+  <div style="flex:1"></div>
+  <textarea id="bottomTextarea" rows="2" cols="50"
+    style="margin-bottom:0; position:fixed; bottom:0; left:20px; width:300px;"></textarea>
+</body>
+</html>`;
+
 const MOCK_MODELS = {
   data: [
     {
@@ -42,6 +52,8 @@ const MOCK_MODELS = {
 
 function startServer() {
   return new Promise((resolve) => {
+    let lastRequestBody = null;
+
     const server = http.createServer((req, res) => {
       // CORS
       res.setHeader('Access-Control-Allow-Origin', '*');
@@ -58,6 +70,20 @@ function startServer() {
       if (req.method === 'GET' && req.url === '/test-page') {
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(TEST_HTML);
+        return;
+      }
+
+      // Serve bottom textarea test page
+      if (req.method === 'GET' && req.url === '/test-page-bottom') {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(TEST_HTML_BOTTOM);
+        return;
+      }
+
+      // Last request body (for test assertions)
+      if (req.method === 'GET' && req.url === '/last-request') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(lastRequestBody || {}));
         return;
       }
 
@@ -83,6 +109,8 @@ function startServer() {
             res.end(JSON.stringify({ error: { message: 'Invalid JSON' } }));
             return;
           }
+
+          lastRequestBody = parsed;
 
           if (parsed.stream) {
             // SSE streaming response

@@ -124,6 +124,18 @@ async function getStorage(worker, keys) {
   }, keys);
 }
 
+async function setLocalStorage(worker, data) {
+  await worker.evaluate(async (d) => {
+    await chrome.storage.local.set(d);
+  }, data);
+}
+
+async function getLocalStorage(worker, keys) {
+  return worker.evaluate(async (k) => {
+    return chrome.storage.local.get(k);
+  }, keys);
+}
+
 async function createTestPage(browser, mockServerUrl) {
   const page = await browser.newPage();
   await page.goto(`${mockServerUrl}/test-page`, { waitUntil: 'load' });
@@ -169,6 +181,8 @@ module.exports = {
   openOptionsPage,
   setStorage,
   getStorage,
+  setLocalStorage,
+  getLocalStorage,
   createTestPage,
   waitForNewPage,
   cleanupBrowser,

@@ -71,12 +71,12 @@ chrome.runtime.onConnect.addListener((port) => {
 
   port.onMessage.addListener((msg) => {
     if (msg.action === 'polish') {
-      handlePolishStream(msg.text, msg.targetLanguage, port);
+      handlePolishStream(msg.text, msg.targetLanguage, port, msg.chatMode);
     }
   });
 });
 
-async function handlePolishStream(text, targetLanguage, port) {
+async function handlePolishStream(text, targetLanguage, port, chatMode) {
   try {
     const settings = await getSettings();
 
@@ -85,7 +85,7 @@ async function handlePolishStream(text, targetLanguage, port) {
       return;
     }
 
-    const userMessage = buildPrompt(settings.prompt, text, targetLanguage);
+    const userMessage = chatMode ? text : buildPrompt(settings.prompt, text, targetLanguage);
 
     const response = await fetch(settings.apiUrl, {
       method: 'POST',
@@ -186,30 +186,82 @@ function generateFallbackIcon(orgName) {
   return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><rect width="24" height="24" rx="6" fill="${color}"/><text x="12" y="16.5" text-anchor="middle" font-size="13" font-family="system-ui,sans-serif" fill="#fff" font-weight="700">${letter}</text></svg>`)}`;
 }
 
-// Icon URL cache: orgDisplayName -> url (persists within service worker lifetime)
+// Icon cache: orgSlug -> { url, dataUrl }
+// Memory cache (service worker lifetime)
 const orgIconCache = {};
 
+async function fetchIconAsDataUrl(url) {
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const ct = res.headers.get('content-type') || '';
+  // Reject HTML responses (some CDN 404s return HTML with 200)
+  if (ct.includes('text/html')) return null;
+  const buf = await res.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64 = btoa(binary);
+  const mime = ct.split(';')[0].trim() || 'image/png';
+  return `data:${mime};base64,${base64}`;
+}
+
+async function loadIconCache() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get({ iconCache: {} }, (d) => resolve(d.iconCache));
+  });
+}
+
+async function saveIconCache(cache) {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ iconCache: cache }, resolve);
+  });
+}
+
 async function resolveOrgIcon(orgSlug) {
+  // 1. Memory cache hit
   if (orgIconCache[orgSlug]) return orgIconCache[orgSlug];
 
-  // Try scraping the org page to find the real icon path
+  // 2. Local storage cache hit
+  const stored = await loadIconCache();
+  if (stored[orgSlug]) {
+    orgIconCache[orgSlug] = stored[orgSlug];
+    return stored[orgSlug];
+  }
+
+  // 3. Scrape org page to find icon URL
+  let iconUrl = null;
   try {
     const pageRes = await fetch(`https://openrouter.ai/${encodeURIComponent(orgSlug)}`);
     if (pageRes.ok) {
       const html = await pageRes.text();
-      // Look for /images/icons/XYZ.svg or /images/icons/XYZ.png in the page
       const match = html.match(/\/images\/icons\/([^"'\s]+\.(?:svg|png))/);
       if (match) {
-        const iconUrl = `https://openrouter.ai${match[0]}`;
-        orgIconCache[orgSlug] = iconUrl;
-        return iconUrl;
+        iconUrl = `https://openrouter.ai${match[0]}`;
       }
     }
   } catch {}
 
-  const fallback = generateFallbackIcon(orgSlug);
-  orgIconCache[orgSlug] = fallback;
-  return fallback;
+  // 4. Download icon and convert to data URL
+  let result;
+  if (iconUrl) {
+    try {
+      const dataUrl = await fetchIconAsDataUrl(iconUrl);
+      result = dataUrl || iconUrl; // fallback to remote URL if conversion fails
+    } catch {
+      result = iconUrl;
+    }
+  } else {
+    result = generateFallbackIcon(orgSlug);
+  }
+
+  // 5. Persist to memory + local storage
+  orgIconCache[orgSlug] = result;
+  stored[orgSlug] = result;
+  await saveIconCache(stored);
+
+  return result;
 }
 
 async function handleFetchModelInfo(modelId) {
@@ -224,14 +276,14 @@ async function handleFetchModelInfo(modelId) {
       return { error: 'Model not found' };
     }
     const orgSlug = modelId.split('/')[0] || modelId;
-    const org_icon = await resolveOrgIcon(orgSlug);
+    await resolveOrgIcon(orgSlug); // pre-cache icon to local storage
     return {
       id: model.id,
       name: model.name,
       context_length: model.context_length,
       prompt_cost: model.pricing?.prompt,
       completion_cost: model.pricing?.completion,
-      org_icon
+      org_icon: orgSlug // store slug, not URL — options page resolves from local cache
     };
   } catch (err) {
     return { error: err.message };
@@ -251,17 +303,16 @@ async function handleBatchFetchModelInfo(modelIds) {
     for (const modelId of modelIds) {
       const model = allModels.find((m) => m.id === modelId);
       const orgSlug = modelId.split('/')[0] || modelId;
+      await resolveOrgIcon(orgSlug); // pre-cache icon
       if (model) {
-        const org_icon = await resolveOrgIcon(orgSlug);
         results[modelId] = {
           context_length: model.context_length,
           prompt_cost: model.pricing?.prompt,
           completion_cost: model.pricing?.completion,
-          org_icon
+          org_icon: orgSlug
         };
       } else {
-        const org_icon = await resolveOrgIcon(orgSlug);
-        results[modelId] = { org_icon, notFound: true };
+        results[modelId] = { org_icon: orgSlug, notFound: true };
       }
     }
     return { results };

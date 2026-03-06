@@ -174,6 +174,19 @@
     .model-item:last-child { border-bottom: none; }
     .model-item:hover { background: #f0edff22; }
     .model-item.selected { background: #f0edff; }
+    .model-item.dragging { opacity: 0.4; }
+    .model-item.drag-over { border-top: 2px solid #6C63FF; }
+    .model-item-handle {
+      cursor: grab;
+      color: #ccc;
+      font-size: 18px;
+      line-height: 1;
+      user-select: none;
+      flex-shrink: 0;
+      padding: 0 2px;
+    }
+    .model-item-handle:hover { color: #999; }
+    .model-item:active .model-item-handle { cursor: grabbing; }
     .model-item-icon {
       width: 22px;
       height: 22px;

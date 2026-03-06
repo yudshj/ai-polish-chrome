@@ -193,5 +193,8 @@
   },
   "optModelInfoCleared": {
     "message": "Modellinformationen gelöscht"
+  },
+  "panelChatMode": {
+    "message": "Chat-Modus (direkt senden)"
   }
 }

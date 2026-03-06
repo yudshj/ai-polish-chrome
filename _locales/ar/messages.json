@@ -193,5 +193,8 @@
   },
   "optModelInfoCleared": {
     "message": "تم مسح معلومات النماذج"
+  },
+  "panelChatMode": {
+    "message": "وضع المحادثة (إرسال مباشر)"
   }
 }

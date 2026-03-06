@@ -214,6 +214,10 @@
         <option value="English">English</option>
         <option value="日本語">日本語</option>
       </select>
+      <label class="aip-chat-toggle">
+        <input type="checkbox" class="aip-chat-checkbox">
+        <span>${i18n('panelChatMode')}</span>
+      </label>
       <button class="aip-polish-btn">
         ${QUILL_PURPLE_SVG}
         <span>${i18n('panelPolish')}</span>
@@ -246,13 +250,42 @@
     const btnRect = currentBtn.getBoundingClientRect();
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
+    const panelWidth = 220;
+    const gap = 6;
 
-    let left = btnRect.right + scrollX - 220;
-    let top = btnRect.bottom + scrollY + 6;
+    // Measure panel height (briefly make visible off-screen if needed)
+    currentPanel.style.visibility = 'hidden';
+    currentPanel.style.display = 'block';
+    const panelHeight = currentPanel.offsetHeight;
+    currentPanel.style.visibility = '';
+    currentPanel.style.display = '';
+
+    let left = btnRect.right + scrollX - panelWidth;
+    let top;
+    let above = false;
+
+    const spaceBelow = window.innerHeight - btnRect.bottom;
+    const spaceAbove = btnRect.top;
+
+    if (spaceBelow >= panelHeight + gap) {
+      top = btnRect.bottom + scrollY + gap;
+    } else if (spaceAbove >= panelHeight + gap) {
+      top = btnRect.top + scrollY - panelHeight - gap;
+      above = true;
+    } else {
+      if (spaceBelow >= spaceAbove) {
+        top = btnRect.bottom + scrollY + gap;
+      } else {
+        top = btnRect.top + scrollY - panelHeight - gap;
+        above = true;
+      }
+    }
+
+    currentPanel.classList.toggle('aip-above', above);
 
     if (left < 8) left = 8;
-    if (left + 220 > window.innerWidth + scrollX) {
-      left = window.innerWidth + scrollX - 228;
+    if (left + panelWidth > window.innerWidth + scrollX) {
+      left = window.innerWidth + scrollX - panelWidth - 8;
     }
 
     currentPanel.style.top = top + 'px';
@@ -350,6 +383,7 @@
     }
 
     const lang = currentPanel.querySelector('.aip-lang-select').value;
+    const chatMode = currentPanel.querySelector('.aip-chat-checkbox')?.checked || false;
     originalText = text;
     isPolishing = true;
     updatePolishBtn(true);
@@ -457,7 +491,8 @@
     port.postMessage({
       action: 'polish',
       text: text,
-      targetLanguage: lang
+      targetLanguage: lang,
+      chatMode: chatMode
     });
   }
 

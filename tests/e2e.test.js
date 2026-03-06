@@ -7,6 +7,8 @@ const {
   openOptionsPage,
   setStorage,
   getStorage,
+  setLocalStorage,
+  getLocalStorage,
   createTestPage,
   waitForNewPage,
   cleanupBrowser,
@@ -380,6 +382,7 @@ describe('Options page', () => {
       apiUrl: 'https://custom.api/v1/chat',
       apiKey: 'my-key-123',
       model: 'openai/gpt-5.2',
+      models: [{ id: 'openai/gpt-5.2' }, { id: 'test-model' }],
       prompt: 'Custom prompt here',
     });
 
@@ -388,17 +391,23 @@ describe('Options page', () => {
 
     const apiUrl = await page.$eval('#apiUrl', (el) => el.value);
     const apiKey = await page.$eval('#apiKey', (el) => el.value);
-    const model = await page.$eval('#modelSelect', (el) => el.value);
     const prompt = await page.$eval('#prompt', (el) => el.value);
 
     expect(apiUrl).toBe('https://custom.api/v1/chat');
     expect(apiKey).toBe('my-key-123');
-    expect(model).toBe('openai/gpt-5.2');
     expect(prompt).toBe('Custom prompt here');
+
+    // Selected model should be highlighted in the list
+    const selectedModel = await page.$eval('.model-item.selected .model-item-name', (el) => el.textContent);
+    expect(selectedModel).toBe('openai/gpt-5.2');
     await page.close();
   });
 
   test('Save button persists settings', async () => {
+    await setStorage(worker, {
+      models: [{ id: 'anthropic/claude-opus-4.6' }, { id: 'test-model' }],
+      model: 'anthropic/claude-opus-4.6',
+    });
     const page = await openOptionsPage(browser, extId);
     await page.waitForSelector('#apiUrl');
 
@@ -406,15 +415,12 @@ describe('Options page', () => {
     await page.evaluate(() => {
       document.getElementById('apiUrl').value = 'https://new-api.example/v1/chat';
       document.getElementById('apiKey').value = 'new-key-456';
-      document.getElementById('modelSelect').value = 'anthropic/claude-opus-4.6';
       document.getElementById('prompt').value = 'New custom prompt';
     });
 
     await page.click('#save');
-    // Wait for toast to appear (indicates save completed)
     await page.waitForSelector('.toast.show', { timeout: 5000 });
 
-    // Verify storage was updated
     const stored = await getStorage(worker, ['apiUrl', 'apiKey', 'model', 'prompt']);
     expect(stored.apiUrl).toBe('https://new-api.example/v1/chat');
     expect(stored.apiKey).toBe('new-key-456');
@@ -500,63 +506,28 @@ describe('Options page', () => {
     await setStorage(worker, { skipSites: [] });
   });
 
-  test('Model info fetch', async () => {
-    // Use CDP Fetch domain to intercept the hardcoded OpenRouter API request
-    const cdp = await swTarget.createCDPSession();
-
-    await cdp.send('Fetch.enable', {
-      patterns: [{ urlPattern: '*openrouter.ai/api/v1/models*' }],
+  test('Model list renders with correct models', async () => {
+    await setStorage(worker, {
+      models: [
+        { id: 'google/gemini-3-flash-preview', context_length: 1000000 },
+        { id: 'openai/gpt-5.2' },
+      ],
+      model: 'google/gemini-3-flash-preview',
     });
 
-    cdp.on('Fetch.requestPaused', async (event) => {
-      try {
-        if (event.request.url.includes('openrouter.ai/api/v1/models')) {
-          await cdp.send('Fetch.fulfillRequest', {
-            requestId: event.requestId,
-            responseCode: 200,
-            responseHeaders: [
-              { name: 'Content-Type', value: 'application/json' },
-            ],
-            body: Buffer.from(
-              JSON.stringify({
-                data: [
-                  {
-                    id: 'google/gemini-3-flash-preview',
-                    name: 'Gemini 3 Flash Preview',
-                    context_length: 1000000,
-                    pricing: { prompt: '0.000001', completion: '0.000004' },
-                  },
-                ],
-              })
-            ).toString('base64'),
-          });
-        } else {
-          await cdp.send('Fetch.continueRequest', {
-            requestId: event.requestId,
-          });
-        }
-      } catch {
-        // Session may have been detached
-      }
-    });
-
-    // Set a preset model so auto-fetch triggers on page load
-    await setStorage(worker, { model: 'google/gemini-3-flash-preview' });
     const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('.model-item');
 
-    // Wait for model info body to become visible
-    await page.waitForSelector('.model-info-body.visible', { timeout: 10000 });
+    const modelNames = await page.$$eval('.model-item-name', (els) =>
+      els.map((el) => el.textContent)
+    );
+    expect(modelNames).toContain('google/gemini-3-flash-preview');
+    expect(modelNames).toContain('openai/gpt-5.2');
 
-    const ctxValue = await page.$eval('#infoCtxValue', (el) => el.textContent);
-    expect(ctxValue).toContain('1,000,000');
+    // First model should have context info rendered
+    const meta = await page.$eval('.model-item.selected .model-item-meta', (el) => el.textContent);
+    expect(meta).toContain('1M');
 
-    // Clean up CDP session
-    try {
-      await cdp.send('Fetch.disable');
-      await cdp.detach();
-    } catch {
-      // Ignore detach errors
-    }
     await page.close();
   });
 });
@@ -582,6 +553,428 @@ describe('i18n', () => {
 
     const openSettings = await page.$eval('#openSettings', (el) => el.textContent);
     expect(openSettings.trim().length).toBeGreaterThan(0);
+    await page.close();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 7: Chat mode
+// ---------------------------------------------------------------------------
+
+describe('Content script — chat mode', () => {
+  let page;
+
+  beforeEach(async () => {
+    await setStorage(worker, {
+      apiUrl: `${mockServer.url}/chat/completions`,
+      apiKey: 'test-key-123',
+      model: 'test-model',
+    });
+    page = await createTestPage(browser, mockServer.url);
+  });
+
+  afterEach(async () => {
+    if (page && !page.isClosed()) await page.close();
+  });
+
+  test('Chat mode checkbox exists in panel', async () => {
+    await page.click('#testTextarea');
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+    await page.hover('.aip-btn');
+    await page.waitForSelector('.aip-panel.aip-visible', { timeout: 3000 });
+
+    const checkbox = await page.$('.aip-chat-checkbox');
+    expect(checkbox).not.toBeNull();
+
+    // Default unchecked
+    const checked = await page.$eval('.aip-chat-checkbox', (el) => el.checked);
+    expect(checked).toBe(false);
+  });
+
+  test('Chat mode sends text as-is (no polish prompt wrapping)', async () => {
+    const rawText = 'What is 2+2?';
+    await page.click('#testTextarea');
+    await page.type('#testTextarea', rawText);
+
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+    await page.hover('.aip-btn');
+    await page.waitForSelector('.aip-panel.aip-visible', { timeout: 3000 });
+
+    // Enable chat mode
+    await page.click('.aip-chat-checkbox');
+    const checked = await page.$eval('.aip-chat-checkbox', (el) => el.checked);
+    expect(checked).toBe(true);
+
+    // Click polish
+    await page.hover('.aip-polish-btn');
+    await page.click('.aip-polish-btn');
+
+    // Wait for completion
+    await page.waitForSelector('.aip-undo-btn', { visible: true, timeout: 15000 });
+
+    // Check what the mock server received
+    const res = await fetch(`${mockServer.url}/last-request`);
+    const lastReq = await res.json();
+
+    // In chat mode, the user message should be the raw text (no "professional text polishing" wrapper)
+    const userMsg = lastReq.messages?.[0]?.content;
+    expect(userMsg).toBe(rawText);
+  });
+
+  test('Normal mode wraps text in polish prompt', async () => {
+    // Ensure default prompt is used
+    await setStorage(worker, {
+      apiUrl: `${mockServer.url}/chat/completions`,
+      apiKey: 'test-key-123',
+      model: 'test-model',
+      prompt: `You are a professional text polishing assistant.\n\nTarget language: {{targetLanguage}}\n\nText to polish:\n{{text}}`,
+    });
+    // Re-create page to pick up fresh settings
+    if (page && !page.isClosed()) await page.close();
+    page = await createTestPage(browser, mockServer.url);
+
+    const rawText = 'Hello world test';
+    await page.click('#testTextarea');
+    await page.type('#testTextarea', rawText);
+
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+    await page.hover('.aip-btn');
+    await page.waitForSelector('.aip-panel.aip-visible', { timeout: 3000 });
+
+    // Ensure chat mode is OFF
+    const checked = await page.$eval('.aip-chat-checkbox', (el) => el.checked);
+    expect(checked).toBe(false);
+
+    await page.hover('.aip-polish-btn');
+    await page.click('.aip-polish-btn');
+    await page.waitForSelector('.aip-undo-btn', { visible: true, timeout: 15000 });
+
+    const res = await fetch(`${mockServer.url}/last-request`);
+    const lastReq = await res.json();
+    const userMsg = lastReq.messages?.[0]?.content;
+
+    // Should contain the polish prompt template text
+    expect(userMsg).toContain('professional text polishing');
+    expect(userMsg).toContain(rawText);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 8: Panel positioning (above/below)
+// ---------------------------------------------------------------------------
+
+describe('Content script — panel positioning', () => {
+  test('Panel appears above when textarea is at bottom of viewport', async () => {
+    const page = await browser.newPage();
+    await page.goto(`${mockServer.url}/test-page-bottom`, { waitUntil: 'load' });
+
+    await page.click('#bottomTextarea');
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+    await page.hover('.aip-btn');
+    await page.waitForSelector('.aip-panel.aip-visible', { timeout: 3000 });
+
+    // Panel should have the aip-above class
+    const hasAbove = await page.$eval('.aip-panel', (el) => el.classList.contains('aip-above'));
+    expect(hasAbove).toBe(true);
+
+    // Panel top should be above the button top
+    const positions = await page.evaluate(() => {
+      const panel = document.querySelector('.aip-panel');
+      const btn = document.querySelector('.aip-btn');
+      return {
+        panelBottom: panel.getBoundingClientRect().bottom,
+        btnTop: btn.getBoundingClientRect().top,
+      };
+    });
+    expect(positions.panelBottom).toBeLessThanOrEqual(positions.btnTop + 2); // allow small rounding
+
+    await page.close();
+  });
+
+  test('Panel appears below when textarea is at top of viewport', async () => {
+    const page = await createTestPage(browser, mockServer.url);
+
+    await page.click('#testTextarea');
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+    await page.hover('.aip-btn');
+    await page.waitForSelector('.aip-panel.aip-visible', { timeout: 3000 });
+
+    // Panel should NOT have the aip-above class
+    const hasAbove = await page.$eval('.aip-panel', (el) => el.classList.contains('aip-above'));
+    expect(hasAbove).toBe(false);
+
+    // Panel top should be below the button bottom
+    const positions = await page.evaluate(() => {
+      const panel = document.querySelector('.aip-panel');
+      const btn = document.querySelector('.aip-btn');
+      return {
+        panelTop: panel.getBoundingClientRect().top,
+        btnBottom: btn.getBoundingClientRect().bottom,
+      };
+    });
+    expect(positions.panelTop).toBeGreaterThanOrEqual(positions.btnBottom - 2);
+
+    await page.close();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 9: Model drag-to-reorder
+// ---------------------------------------------------------------------------
+
+describe('Options page — model drag-to-reorder', () => {
+  test('Model items have drag handles', async () => {
+    await setStorage(worker, {
+      models: [{ id: 'model-a' }, { id: 'model-b' }],
+      model: 'model-a',
+    });
+    const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('.model-item');
+
+    const handles = await page.$$('.model-item-handle');
+    expect(handles.length).toBe(2);
+
+    // Items should be draggable
+    const draggable = await page.$$eval('.model-item', (items) =>
+      items.map((el) => el.draggable)
+    );
+    expect(draggable).toEqual([true, true]);
+
+    await page.close();
+  });
+
+  test('Drag reorder persists new order', async () => {
+    await setStorage(worker, {
+      models: [{ id: 'first-model' }, { id: 'second-model' }, { id: 'third-model' }],
+      model: 'first-model',
+    });
+    const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('.model-item');
+
+    // Simulate drag: move third-model (index 2) to index 0
+    // Use evaluate to directly manipulate the models array via the drag/drop logic
+    await page.evaluate(() => {
+      // Simulate the effect of a drag: reorder the models array
+      const items = document.querySelectorAll('.model-item');
+      // Trigger dragstart on item 2
+      const dragStartEvent = new DragEvent('dragstart', {
+        bubbles: true,
+        dataTransfer: new DataTransfer(),
+      });
+      items[2].dispatchEvent(dragStartEvent);
+
+      // Trigger drop on item 0
+      const dropEvent = new DragEvent('drop', {
+        bubbles: true,
+        dataTransfer: new DataTransfer(),
+      });
+      dropEvent.preventDefault = () => {};
+      items[0].dispatchEvent(dropEvent);
+    });
+
+    // Wait a moment for persistence
+    await new Promise((r) => setTimeout(r, 500));
+
+    const stored = await getStorage(worker, ['models']);
+    const ids = stored.models.map((m) => m.id);
+    // After dragging item[2] onto item[0], the order should be: third, first, second
+    expect(ids).toEqual(['third-model', 'first-model', 'second-model']);
+
+    await page.close();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 10: Model add/delete (inline UI)
+// ---------------------------------------------------------------------------
+
+describe('Options page — model add/delete', () => {
+  test('Add model via inline row', async () => {
+    await setStorage(worker, {
+      models: [{ id: 'existing-model' }],
+      model: 'existing-model',
+    });
+    const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('.model-item');
+
+    // Click Add button
+    await page.click('#addModelBtn');
+    await page.waitForSelector('.model-add-row input', { timeout: 3000 });
+
+    // Type new model ID and press Enter
+    await page.type('.model-add-row input', 'new-org/new-model');
+    await page.keyboard.press('Enter');
+
+    // Wait for new model to appear in list
+    await page.waitForFunction(
+      () => {
+        const names = [...document.querySelectorAll('.model-item-name')].map((el) => el.textContent);
+        return names.includes('new-org/new-model');
+      },
+      { timeout: 5000 }
+    );
+
+    // Wait for storage to be updated
+    await new Promise((r) => setTimeout(r, 500));
+    const stored = await getStorage(worker, ['models']);
+    const ids = stored.models.map((m) => m.id);
+    expect(ids).toContain('new-org/new-model');
+
+    await page.close();
+  });
+
+  test('Add duplicate model shows toast', async () => {
+    await setStorage(worker, {
+      models: [{ id: 'dup-model' }],
+      model: 'dup-model',
+    });
+    const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('.model-item');
+
+    await page.click('#addModelBtn');
+    await page.waitForSelector('.model-add-row input', { timeout: 3000 });
+    await page.type('.model-add-row input', 'dup-model');
+    await page.keyboard.press('Enter');
+
+    // Toast should appear
+    await page.waitForSelector('.toast.show', { timeout: 3000 });
+
+    // Add row should still be present (not dismissed)
+    const addRow = await page.$('.model-add-row');
+    expect(addRow).not.toBeNull();
+
+    await page.close();
+  });
+
+  test('Delete model with confirm modal', async () => {
+    await setStorage(worker, {
+      models: [{ id: 'keep-me' }, { id: 'delete-me' }],
+      model: 'delete-me',
+    });
+    const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('.model-item');
+
+    // 'delete-me' should be selected
+    const selected = await page.$eval('.model-item.selected .model-item-name', (el) => el.textContent);
+    expect(selected).toBe('delete-me');
+
+    // Click delete
+    await page.click('#deleteModelBtn');
+    await page.waitForSelector('.modal-overlay.visible', { timeout: 3000 });
+
+    // Confirm deletion
+    await page.click('#confirmModalConfirm');
+
+    // Wait for model to be removed
+    await page.waitForFunction(
+      () => {
+        const names = [...document.querySelectorAll('.model-item-name')].map((el) => el.textContent);
+        return !names.includes('delete-me');
+      },
+      { timeout: 5000 }
+    );
+
+    const stored = await getStorage(worker, ['models']);
+    const ids = stored.models.map((m) => m.id);
+    expect(ids).not.toContain('delete-me');
+    expect(ids).toContain('keep-me');
+
+    await page.close();
+  });
+
+  test('Cancel delete does not remove model', async () => {
+    await setStorage(worker, {
+      models: [{ id: 'safe-model' }],
+      model: 'safe-model',
+    });
+    const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('.model-item');
+
+    await page.click('#deleteModelBtn');
+    await page.waitForSelector('.modal-overlay.visible', { timeout: 3000 });
+
+    // Cancel
+    await page.click('#confirmModalCancel');
+
+    // Model should still be there
+    await new Promise((r) => setTimeout(r, 300));
+    const names = await page.$$eval('.model-item-name', (els) => els.map((el) => el.textContent));
+    expect(names).toContain('safe-model');
+
+    await page.close();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 11: Icon caching (local storage)
+// ---------------------------------------------------------------------------
+
+describe('Options page — icon caching', () => {
+  test('Clear info also clears icon cache', async () => {
+    // Pre-populate icon cache
+    await setLocalStorage(worker, {
+      iconCache: { google: 'data:image/svg+xml,test', openai: 'data:image/svg+xml,test2' },
+    });
+    await setStorage(worker, {
+      models: [
+        { id: 'google/gemini', context_length: 100000, org_icon: 'google' },
+      ],
+      model: 'google/gemini',
+    });
+
+    const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('.model-item');
+
+    // Click clear info
+    await page.click('#clearModelInfo');
+    await page.waitForSelector('.modal-overlay.visible', { timeout: 3000 });
+    await page.click('#confirmModalConfirm');
+
+    await page.waitForSelector('.toast.show', { timeout: 5000 });
+
+    // Icon cache should be empty
+    const local = await getLocalStorage(worker, ['iconCache']);
+    expect(local.iconCache).toEqual({});
+
+    // Model context_length should be cleared
+    const stored = await getStorage(worker, ['models']);
+    expect(stored.models[0].context_length).toBeUndefined();
+
+    await page.close();
+  });
+
+  test('Icons render from local cache', async () => {
+    const fakeSvgDataUrl = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><rect fill="red" width="24" height="24"/></svg>');
+    await setLocalStorage(worker, {
+      iconCache: { testorg: fakeSvgDataUrl },
+    });
+    await setStorage(worker, {
+      models: [{ id: 'testorg/some-model', org_icon: 'testorg' }],
+      model: 'testorg/some-model',
+    });
+
+    // Ensure storage writes propagate
+    await new Promise((r) => setTimeout(r, 200));
+
+    const page = await openOptionsPage(browser, extId);
+    await page.waitForSelector('.model-item');
+
+    // Wait for icon to be rendered (local storage load is async)
+    await page.waitForFunction(
+      () => {
+        const icon = document.querySelector('.model-item-icon');
+        return icon && icon.src && icon.src.includes('data:image');
+      },
+      { timeout: 5000 }
+    );
+
+    const iconSrc = await page.$eval('.model-item-icon', (el) => el.src);
+    expect(iconSrc).toContain('data:image/svg+xml');
+
+    // Icon should be visible (not display:none)
+    const display = await page.$eval('.model-item-icon', (el) => getComputedStyle(el).display);
+    expect(display).not.toBe('none');
+
     await page.close();
   });
 });

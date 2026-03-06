@@ -33,9 +33,12 @@ const $skipSitesText = document.getElementById('skipSitesText');
 const $modelList = document.getElementById('modelList');
 
 // State: each model entry has { id, context_length?, prompt_cost?, completion_cost?, org_icon? }
+// org_icon stores the org slug (e.g. "google"); actual data URLs are in iconCache
 let models = [];
 let selectedModelId = '';
 let addRowActive = false;
+let dragSrcIndex = null;
+let iconCache = {}; // orgSlug -> dataUrl, loaded from chrome.storage.local
 
 // ---- i18n: Apply labels ----
 
@@ -70,14 +73,28 @@ function persistModels() {
 function renderModelList() {
   $modelList.innerHTML = '';
 
-  models.forEach((m) => {
+  models.forEach((m, idx) => {
     const item = document.createElement('div');
     item.className = 'model-item' + (m.id === selectedModelId ? ' selected' : '');
+    item.draggable = true;
+    item.dataset.index = idx;
 
-    // Org icon
+    // Drag handle
+    const handle = document.createElement('span');
+    handle.className = 'model-item-handle';
+    handle.textContent = '\u2261';
+    item.appendChild(handle);
+
+    // Org icon — resolve from local icon cache
     const icon = document.createElement('img');
     icon.className = 'model-item-icon';
-    if (m.org_icon) {
+    const orgSlug = m.org_icon || m.id.split('/')[0];
+    const cachedIcon = iconCache[orgSlug];
+    if (cachedIcon) {
+      icon.src = cachedIcon;
+      icon.onerror = () => { icon.style.display = 'none'; };
+    } else if (m.org_icon && m.org_icon.startsWith('data:')) {
+      // Legacy: org_icon might be a data URL from older versions
       icon.src = m.org_icon;
       icon.onerror = () => { icon.style.display = 'none'; };
     } else {
@@ -95,7 +112,8 @@ function renderModelList() {
 
     if (m.context_length) {
       const ctx = document.createElement('span');
-      ctx.textContent = i18n('optModelCtx') + ': ' + (m.context_length / 1000) + 'k';
+      const ctxK = Math.round(m.context_length / 1000);
+      ctx.textContent = i18n('optModelCtx') + ': ' + (ctxK >= 1000 ? (ctxK / 1000) + 'M' : ctxK + 'k');
       meta.appendChild(ctx);
     }
     if (m.prompt_cost) {
@@ -114,6 +132,35 @@ function renderModelList() {
     item.addEventListener('click', () => {
       selectedModelId = m.id;
       renderModelList();
+    });
+
+    // Drag events
+    item.addEventListener('dragstart', (e) => {
+      dragSrcIndex = idx;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      dragSrcIndex = null;
+      $modelList.querySelectorAll('.model-item').forEach((el) => el.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      $modelList.querySelectorAll('.model-item').forEach((el) => el.classList.remove('drag-over'));
+      if (dragSrcIndex !== null && dragSrcIndex !== idx) {
+        item.classList.add('drag-over');
+      }
+    });
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (dragSrcIndex === null || dragSrcIndex === idx) return;
+      const [moved] = models.splice(dragSrcIndex, 1);
+      models.splice(idx, 0, moved);
+      dragSrcIndex = null;
+      renderModelList();
+      persistModels();
     });
 
     $modelList.appendChild(item);
@@ -161,6 +208,7 @@ function showAddRow() {
     selectedModelId = id;
     dismiss();
     renderModelList();
+    persistModels();
     fetchSingleModelInfo(id);
   }
 
@@ -245,6 +293,9 @@ document.getElementById('clearModelInfo').addEventListener('click', async () => 
     delete m.completion_cost;
     delete m.org_icon;
   }
+  // Clear local icon cache too
+  iconCache = {};
+  chrome.storage.local.set({ iconCache: {} });
   renderModelList();
   persistModels();
   toast(i18n('optModelInfoCleared'));
@@ -300,9 +351,13 @@ function smartFetchModelInfo() {
       }
     }
 
-    renderModelList();
-    persistModels();
-    toast(i18n('optSaved'));
+    // Refresh icon cache from local storage (background may have updated it)
+    chrome.storage.local.get({ iconCache: {} }, (d) => {
+      iconCache = d.iconCache || {};
+      renderModelList();
+      persistModels();
+      toast(i18n('optSaved'));
+    });
   });
 }
 
@@ -325,43 +380,52 @@ function fetchSingleModelInfo(modelId) {
         entry.completion_cost = res.completion_cost || null;
       }
       entry.org_icon = res?.org_icon || entry.org_icon;
-      renderModelList();
-      persistModels();
+      // Refresh icon cache
+      chrome.storage.local.get({ iconCache: {} }, (d) => {
+        iconCache = d.iconCache || {};
+        renderModelList();
+        persistModels();
+      });
     }
   });
 }
 
 // ---- Load ----
 
-chrome.storage.sync.get({
-  apiUrl: DEFAULT_API_URL,
-  apiKey: '',
-  model: PRESET_MODELS[0],
-  models: null,
-  prompt: DEFAULT_PROMPT,
-  skipSites: []
-}, (s) => {
-  $apiUrl.value = s.apiUrl;
-  $apiKey.value = s.apiKey;
-  $prompt.value = s.prompt;
-  $skipSitesText.value = s.skipSites.join('\n');
+// Load icon cache from local storage first, then load settings
+chrome.storage.local.get({ iconCache: {} }, (local) => {
+  iconCache = local.iconCache || {};
 
-  // Migrate: if no models array saved yet, create from presets
-  if (s.models === null) {
-    models = PRESET_MODELS.map((id) => ({ id }));
-    if (!PRESET_MODELS.includes(s.model) && s.model) {
-      models.push({ id: s.model });
+  chrome.storage.sync.get({
+    apiUrl: DEFAULT_API_URL,
+    apiKey: '',
+    model: PRESET_MODELS[0],
+    models: null,
+    prompt: DEFAULT_PROMPT,
+    skipSites: []
+  }, (s) => {
+    $apiUrl.value = s.apiUrl;
+    $apiKey.value = s.apiKey;
+    $prompt.value = s.prompt;
+    $skipSitesText.value = s.skipSites.join('\n');
+
+    // Migrate: if no models array saved yet, create from presets
+    if (s.models === null) {
+      models = PRESET_MODELS.map((id) => ({ id }));
+      if (!PRESET_MODELS.includes(s.model) && s.model) {
+        models.push({ id: s.model });
+      }
+    } else {
+      models = s.models;
     }
-  } else {
-    models = s.models;
-  }
 
-  selectedModelId = s.model;
-  if (!models.some((m) => m.id === selectedModelId) && models.length > 0) {
-    selectedModelId = models[0].id;
-  }
+    selectedModelId = s.model;
+    if (!models.some((m) => m.id === selectedModelId) && models.length > 0) {
+      selectedModelId = models[0].id;
+    }
 
-  renderModelList();
+    renderModelList();
+  });
 });
 
 // ---- Save ----
