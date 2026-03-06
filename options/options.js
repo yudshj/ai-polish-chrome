@@ -62,6 +62,7 @@ document.getElementById('resetPrompt').textContent = i18n('optResetPrompt');
 document.getElementById('cardSkipSites').textContent = i18n('optSkipSites');
 document.getElementById('hintSkipSites').textContent = i18n('optSkipSitesHint');
 document.getElementById('save').textContent = i18n('optSave');
+document.getElementById('headerSave').textContent = i18n('optSave');
 
 // ---- Persist models to storage ----
 
@@ -131,8 +132,10 @@ function renderModelList() {
     item.appendChild(meta);
 
     item.addEventListener('click', () => {
+      if (selectedModelId === m.id) return;
       selectedModelId = m.id;
       renderModelList();
+      persistModels();
     });
 
     // Drag events
@@ -431,7 +434,7 @@ chrome.storage.local.get({ iconCache: {} }, (local) => {
 
 // ---- Save ----
 
-document.getElementById('save').addEventListener('click', () => {
+function saveAllSettings() {
   if (!selectedModelId) {
     toast(i18n('optSpecifyModel'));
     return;
@@ -452,7 +455,10 @@ document.getElementById('save').addEventListener('click', () => {
   }, () => {
     toast(i18n('optSaved'));
   });
-});
+}
+
+document.getElementById('save').addEventListener('click', saveAllSettings);
+document.getElementById('headerSave').addEventListener('click', saveAllSettings);
 
 // ---- Reset prompt ----
 
