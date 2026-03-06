@@ -189,34 +189,27 @@ function generateFallbackIcon(orgName) {
 // Icon URL cache: orgDisplayName -> url (persists within service worker lifetime)
 const orgIconCache = {};
 
-async function resolveOrgIcon(orgDisplayName) {
-  if (orgIconCache[orgDisplayName]) return orgIconCache[orgDisplayName];
+async function resolveOrgIcon(orgSlug) {
+  if (orgIconCache[orgSlug]) return orgIconCache[orgSlug];
 
-  // Try OpenRouter's icon CDN: /images/icons/{OrgDisplayName}.svg
-  const iconUrl = `https://openrouter.ai/images/icons/${encodeURIComponent(orgDisplayName)}.svg`;
+  // Try scraping the org page to find the real icon path
   try {
-    const res = await fetch(iconUrl, { method: 'HEAD' });
-    const ct = res.headers.get('content-type') || '';
-    if (res.ok && ct.includes('image/svg+xml')) {
-      orgIconCache[orgDisplayName] = iconUrl;
-      return iconUrl;
+    const pageRes = await fetch(`https://openrouter.ai/${encodeURIComponent(orgSlug)}`);
+    if (pageRes.ok) {
+      const html = await pageRes.text();
+      // Look for /images/icons/XYZ.svg or /images/icons/XYZ.png in the page
+      const match = html.match(/\/images\/icons\/([^"'\s]+\.(?:svg|png))/);
+      if (match) {
+        const iconUrl = `https://openrouter.ai${match[0]}`;
+        orgIconCache[orgSlug] = iconUrl;
+        return iconUrl;
+      }
     }
   } catch {}
 
-  const fallback = generateFallbackIcon(orgDisplayName);
-  orgIconCache[orgDisplayName] = fallback;
+  const fallback = generateFallbackIcon(orgSlug);
+  orgIconCache[orgSlug] = fallback;
   return fallback;
-}
-
-function extractOrgDisplayName(model) {
-  // model.name is like "Google: Gemini 3 Flash Preview"
-  if (model?.name) {
-    const idx = model.name.indexOf(':');
-    if (idx > 0) return model.name.substring(0, idx).trim();
-  }
-  // Fallback: capitalize the org slug from model ID
-  const slug = (model?.id || '').split('/')[0];
-  return slug.charAt(0).toUpperCase() + slug.slice(1);
 }
 
 async function handleFetchModelInfo(modelId) {
@@ -230,8 +223,8 @@ async function handleFetchModelInfo(modelId) {
     if (!model) {
       return { error: 'Model not found' };
     }
-    const orgName = extractOrgDisplayName(model);
-    const org_icon = await resolveOrgIcon(orgName);
+    const orgSlug = modelId.split('/')[0] || modelId;
+    const org_icon = await resolveOrgIcon(orgSlug);
     return {
       id: model.id,
       name: model.name,
@@ -257,9 +250,9 @@ async function handleBatchFetchModelInfo(modelIds) {
     const results = {};
     for (const modelId of modelIds) {
       const model = allModels.find((m) => m.id === modelId);
+      const orgSlug = modelId.split('/')[0] || modelId;
       if (model) {
-        const orgName = extractOrgDisplayName(model);
-        const org_icon = await resolveOrgIcon(orgName);
+        const org_icon = await resolveOrgIcon(orgSlug);
         results[modelId] = {
           context_length: model.context_length,
           prompt_cost: model.pricing?.prompt,
@@ -267,9 +260,7 @@ async function handleBatchFetchModelInfo(modelIds) {
           org_icon
         };
       } else {
-        const slug = modelId.split('/')[0] || modelId;
-        const fallbackName = slug.charAt(0).toUpperCase() + slug.slice(1);
-        const org_icon = await resolveOrgIcon(fallbackName);
+        const org_icon = await resolveOrgIcon(orgSlug);
         results[modelId] = { org_icon, notFound: true };
       }
     }

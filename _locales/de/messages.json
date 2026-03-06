@@ -184,5 +184,14 @@
   },
   "optCancel": {
     "message": "Abbrechen"
+  },
+  "optModelClearInfo": {
+    "message": "Info löschen"
+  },
+  "optModelClearInfoConfirm": {
+    "message": "Alle gespeicherten Modellinformationen (Kontextlänge, Kosten, Icons) löschen?"
+  },
+  "optModelInfoCleared": {
+    "message": "Modellinformationen gelöscht"
   }
 }

@@ -184,5 +184,14 @@
   },
   "optCancel": {
     "message": "Cancel"
+  },
+  "optModelClearInfo": {
+    "message": "Clear Info"
+  },
+  "optModelClearInfoConfirm": {
+    "message": "Clear all cached model info (context length, pricing, icons)?"
+  },
+  "optModelInfoCleared": {
+    "message": "Model info cleared"
   }
 }

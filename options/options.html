@@ -371,6 +371,7 @@
           <button class="model-toolbar-btn" id="addModelBtn"></button>
           <button class="model-toolbar-btn danger" id="deleteModelBtn"></button>
           <button class="model-toolbar-btn" id="fetchModelInfo"></button>
+          <button class="model-toolbar-btn danger" id="clearModelInfo"></button>
         </div>
         <div class="model-list" id="modelList"></div>
         <div class="model-info-error" id="modelInfoError" style="display:none"></div>
@@ -404,13 +405,13 @@
     </div>
   </div>
 
-  <!-- Delete confirm modal -->
-  <div class="modal-overlay" id="deleteModal">
+  <!-- Confirm modal (reusable) -->
+  <div class="modal-overlay" id="confirmModal">
     <div class="modal-box">
-      <p id="deleteModalText"></p>
+      <p id="confirmModalText"></p>
       <div class="modal-actions">
-        <button class="modal-cancel-btn" id="deleteModalCancel"></button>
-        <button class="modal-confirm-btn" id="deleteModalConfirm"></button>
+        <button class="modal-cancel-btn" id="confirmModalCancel"></button>
+        <button class="modal-confirm-btn" id="confirmModalConfirm"></button>
       </div>
     </div>
   </div>

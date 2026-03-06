@@ -184,5 +184,14 @@
   },
   "optCancel": {
     "message": "キャンセル"
+  },
+  "optModelClearInfo": {
+    "message": "情報をクリア"
+  },
+  "optModelClearInfoConfirm": {
+    "message": "キャッシュされたモデル情報（コンテキスト長、料金、アイコン）をすべてクリアしますか？"
+  },
+  "optModelInfoCleared": {
+    "message": "モデル情報をクリアしました"
   }
 }

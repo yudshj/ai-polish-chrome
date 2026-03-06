@@ -184,5 +184,14 @@
   },
   "optCancel": {
     "message": "إلغاء"
+  },
+  "optModelClearInfo": {
+    "message": "مسح المعلومات"
+  },
+  "optModelClearInfoConfirm": {
+    "message": "مسح جميع معلومات النماذج المخزنة (طول السياق، التكلفة، الأيقونات)؟"
+  },
+  "optModelInfoCleared": {
+    "message": "تم مسح معلومات النماذج"
   }
 }

@@ -184,5 +184,14 @@
   },
   "optCancel": {
     "message": "取消"
+  },
+  "optModelClearInfo": {
+    "message": "清除信息"
+  },
+  "optModelClearInfoConfirm": {
+    "message": "清除所有已缓存的模型信息（上下文大小、费用、图标）？"
+  },
+  "optModelInfoCleared": {
+    "message": "模型信息已清除"
   }
 }

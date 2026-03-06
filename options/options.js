@@ -50,6 +50,7 @@ document.getElementById('labelModel').textContent = i18n('optModel');
 document.getElementById('addModelBtn').textContent = i18n('optModelAdd');
 document.getElementById('deleteModelBtn').textContent = i18n('optModelDelete');
 document.getElementById('fetchModelInfo').textContent = i18n('optModelInfoFetch');
+document.getElementById('clearModelInfo').textContent = i18n('optModelClearInfo');
 document.getElementById('cardPrompt').textContent = i18n('optPromptTemplate');
 document.getElementById('labelPrompt').textContent = i18n('optSystemPrompt');
 document.getElementById('hintPrompt').textContent = i18n('optPromptHint');
@@ -57,8 +58,6 @@ document.getElementById('resetPrompt').textContent = i18n('optResetPrompt');
 document.getElementById('cardSkipSites').textContent = i18n('optSkipSites');
 document.getElementById('hintSkipSites').textContent = i18n('optSkipSitesHint');
 document.getElementById('save').textContent = i18n('optSave');
-document.getElementById('deleteModalCancel').textContent = i18n('optCancel');
-document.getElementById('deleteModalConfirm').textContent = i18n('optModelDelete');
 
 // ---- Persist models to storage ----
 
@@ -180,39 +179,75 @@ function showAddRow() {
 
 document.getElementById('addModelBtn').addEventListener('click', showAddRow);
 
-// ---- Delete model (HTML modal) ----
+// ---- Reusable confirm modal ----
 
-function showDeleteModal() {
+let modalResolve = null;
+
+function showConfirmModal(html, confirmLabel, isDanger) {
+  const modal = document.getElementById('confirmModal');
+  document.getElementById('confirmModalText').innerHTML = html;
+  document.getElementById('confirmModalCancel').textContent = i18n('optCancel');
+  const confirmBtn = document.getElementById('confirmModalConfirm');
+  confirmBtn.textContent = confirmLabel;
+  confirmBtn.className = isDanger !== false ? 'modal-confirm-btn' : 'modal-confirm-btn';
+  modal.classList.add('visible');
+  return new Promise((resolve) => { modalResolve = resolve; });
+}
+
+document.getElementById('confirmModalCancel').addEventListener('click', () => {
+  document.getElementById('confirmModal').classList.remove('visible');
+  if (modalResolve) { modalResolve(false); modalResolve = null; }
+});
+
+document.getElementById('confirmModalConfirm').addEventListener('click', () => {
+  document.getElementById('confirmModal').classList.remove('visible');
+  if (modalResolve) { modalResolve(true); modalResolve = null; }
+});
+
+document.getElementById('confirmModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.remove('visible');
+    if (modalResolve) { modalResolve(false); modalResolve = null; }
+  }
+});
+
+// ---- Delete model ----
+
+document.getElementById('deleteModelBtn').addEventListener('click', async () => {
   if (!selectedModelId) {
     toast(i18n('optModelNoneSelected'));
     return;
   }
-  const modal = document.getElementById('deleteModal');
-  const textEl = document.getElementById('deleteModalText');
-  textEl.innerHTML = i18n('optModelDeleteConfirm') + '<br><span class="modal-model-name">' +
+  const html = i18n('optModelDeleteConfirm') + '<br><span class="modal-model-name">' +
     selectedModelId.replace(/</g, '&lt;') + '</span>';
-  modal.classList.add('visible');
-}
+  const confirmed = await showConfirmModal(html, i18n('optModelDelete'));
+  if (!confirmed) return;
 
-document.getElementById('deleteModelBtn').addEventListener('click', showDeleteModal);
-
-document.getElementById('deleteModalCancel').addEventListener('click', () => {
-  document.getElementById('deleteModal').classList.remove('visible');
-});
-
-document.getElementById('deleteModalConfirm').addEventListener('click', () => {
-  document.getElementById('deleteModal').classList.remove('visible');
   models = models.filter((m) => m.id !== selectedModelId);
   selectedModelId = models.length > 0 ? models[0].id : '';
   renderModelList();
   persistModels();
 });
 
-// Close modal on overlay click
-document.getElementById('deleteModal').addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) {
-    e.currentTarget.classList.remove('visible');
+// ---- Clear all model info ----
+
+document.getElementById('clearModelInfo').addEventListener('click', async () => {
+  if (models.length === 0) return;
+  const confirmed = await showConfirmModal(
+    i18n('optModelClearInfoConfirm'),
+    i18n('optModelClearInfo')
+  );
+  if (!confirmed) return;
+
+  for (const m of models) {
+    delete m.context_length;
+    delete m.prompt_cost;
+    delete m.completion_cost;
+    delete m.org_icon;
   }
+  renderModelList();
+  persistModels();
+  toast(i18n('optModelInfoCleared'));
 });
 
 // ---- Fetch model info (smart: unfetched + force selected) ----
