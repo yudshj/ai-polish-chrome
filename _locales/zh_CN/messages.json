@@ -35,6 +35,9 @@
   "panelPolish": {
     "message": "润色"
   },
+  "panelPolishSelection": {
+    "message": "润色选中"
+  },
   "panelPolishing": {
     "message": "润色中..."
   },

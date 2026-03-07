@@ -35,6 +35,9 @@
   "panelPolish": {
     "message": "Улучшить"
   },
+  "panelPolishSelection": {
+    "message": "Улучшить выделенное"
+  },
   "panelPolishing": {
     "message": "Улучшение..."
   },

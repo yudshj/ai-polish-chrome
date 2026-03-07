@@ -35,6 +35,9 @@
   "panelPolish": {
     "message": "Polish"
   },
+  "panelPolishSelection": {
+    "message": "Polish Selection"
+  },
   "panelPolishing": {
     "message": "Polishing..."
   },

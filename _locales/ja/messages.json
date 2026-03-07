@@ -35,6 +35,9 @@
   "panelPolish": {
     "message": "推敲"
   },
+  "panelPolishSelection": {
+    "message": "選択範囲を推敲"
+  },
   "panelPolishing": {
     "message": "推敲中..."
   },

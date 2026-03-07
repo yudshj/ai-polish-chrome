@@ -35,6 +35,9 @@
   "panelPolish": {
     "message": "Polir"
   },
+  "panelPolishSelection": {
+    "message": "Polir la sélection"
+  },
   "panelPolishing": {
     "message": "Polissage en cours..."
   },

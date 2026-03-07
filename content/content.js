@@ -36,6 +36,57 @@
     return el.value || '';
   }
 
+  function getSelectionFromElement(el) {
+    if (el.isContentEditable) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && el.contains(sel.anchorNode)) {
+        const text = sel.toString();
+        if (text) return text;
+      }
+      return '';
+    }
+    if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
+      if (el.selectionStart !== el.selectionEnd) {
+        return (el.value || '').substring(el.selectionStart, el.selectionEnd);
+      }
+    }
+    return '';
+  }
+
+  function replaceSelectionInElement(el, newText) {
+    if (el.isContentEditable) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && el.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(document.createTextNode(newText));
+        // Collapse cursor to end
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      const start = el.selectionStart;
+      const end = el.selectionEnd;
+      const val = el.value || '';
+      const result = val.substring(0, start) + newText + val.substring(end);
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        Object.getPrototypeOf(el), 'value'
+      )?.set;
+      if (nativeSetter) {
+        nativeSetter.call(el, result);
+      } else {
+        el.value = result;
+      }
+      // Place cursor after the replacement
+      el.selectionStart = el.selectionEnd = start + newText.length;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
   function setTextToElement(el, text, { dispatchChange = true } = {}) {
     if (el.isContentEditable) {
       el.innerText = text;
@@ -348,6 +399,7 @@
     currentBtn.addEventListener('mouseenter', () => {
       cancelHide();
       if (currentPanel) {
+        updatePolishBtnForSelection();
         positionPanel();
         currentPanel.classList.add('aip-visible');
       }
@@ -373,10 +425,29 @@
 
   // ---- Polish (port-based streaming) ----
 
+  let selectionMode = false;
+  let selectionStart = 0;
+  let selectionEnd = 0;
+
+  function updatePolishBtnForSelection() {
+    if (!currentPanel || !activeElement || isPolishing) return;
+    const selectedText = getSelectionFromElement(activeElement);
+    selectionMode = !!selectedText;
+    const btn = currentPanel.querySelector('.aip-polish-btn');
+    const label = selectionMode ? i18n('panelPolishSelection') : i18n('panelPolish');
+    btn.innerHTML = `${QUILL_PURPLE_SVG}<span>${label}</span>`;
+
+    if (selectionMode && !activeElement.isContentEditable) {
+      selectionStart = activeElement.selectionStart;
+      selectionEnd = activeElement.selectionEnd;
+    }
+  }
+
   function onPolishClick() {
     if (isPolishing || !activeElement) return;
 
-    const text = getTextFromElement(activeElement).trim();
+    const selectedText = selectionMode ? getSelectionFromElement(activeElement) : '';
+    const text = (selectionMode && selectedText) ? selectedText.trim() : getTextFromElement(activeElement).trim();
     if (!text) {
       showStatus(i18n('panelNoText'), false);
       return;
@@ -384,7 +455,11 @@
 
     const lang = currentPanel.querySelector('.aip-lang-select').value;
     const chatMode = currentPanel.querySelector('.aip-chat-checkbox')?.checked || false;
-    originalText = text;
+    originalText = getTextFromElement(activeElement);
+    const isSelection = selectionMode && !!selectedText;
+    // Snapshot selection range for input/textarea
+    const snapSelStart = selectionStart;
+    const snapSelEnd = selectionEnd;
     isPolishing = true;
     updatePolishBtn(true);
     clearStatus();
@@ -397,41 +472,66 @@
     const port = chrome.runtime.connect({ name: 'polish-stream' });
 
     // ---- Typewriter queue ----
-    // Even if all chunks arrive in a burst (e.g. due to network buffering),
-    // this reveals text gradually so the user sees a typing animation.
     let displayedLen = 0;
     let typingTimer = null;
 
+    function applyStreamText(displayText, isFinal) {
+      if (isSelection) {
+        // Replace the selected region within the full text
+        const prefix = originalText.substring(0, snapSelStart);
+        const suffix = originalText.substring(snapSelEnd);
+        const full = prefix + displayText + suffix;
+        if (targetEl.isContentEditable) {
+          targetEl.innerText = full;
+          targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+          if (isFinal) targetEl.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+          const nativeSetter = Object.getOwnPropertyDescriptor(
+            Object.getPrototypeOf(targetEl), 'value'
+          )?.set;
+          if (nativeSetter) nativeSetter.call(targetEl, full);
+          else targetEl.value = full;
+          targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+          if (isFinal) targetEl.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      } else {
+        setTextToElement(targetEl, displayText, { dispatchChange: isFinal });
+      }
+    }
+
     function typingTick() {
       if (displayedLen >= streamedText.length) {
-        // Caught up with received data
         if (streamDone) {
-          // All data received and displayed — finish up
           stopTyping();
           hideTypingCursor();
           isPolishing = false;
           updatePolishBtn(false);
           const final = streamedText.trim();
           if (final) {
-            setTextToElement(targetEl, final);
+            applyStreamText(final, true);
           }
           showStatus('', true);
           port.disconnect();
         }
         return;
       }
-      // Adaptive speed: reveal more chars when buffer is large, minimum 1
       const buffered = streamedText.length - displayedLen;
       const chars = Math.max(1, Math.ceil(buffered / 20));
       displayedLen = Math.min(displayedLen + chars, streamedText.length);
       const displayText = streamedText.substring(0, displayedLen);
-      setTextToElement(targetEl, displayText, { dispatchChange: false });
-      updateCursorPosition(targetEl, displayText);
+      applyStreamText(displayText, false);
+      if (isSelection) {
+        // For cursor positioning in selection mode, show cursor relative to full text
+        const prefix = originalText.substring(0, snapSelStart);
+        updateCursorPosition(targetEl, prefix + displayText);
+      } else {
+        updateCursorPosition(targetEl, displayText);
+      }
     }
 
     function startTyping() {
       if (typingTimer) return;
-      typingTimer = setInterval(typingTick, 16); // ~60fps
+      typingTimer = setInterval(typingTick, 16);
     }
 
     function stopTyping() {
@@ -446,14 +546,17 @@
         streamedText = '';
         displayedLen = 0;
         streamDone = false;
-        setTextToElement(targetEl, '', { dispatchChange: false });
-        updateCursorPosition(targetEl, '');
+        applyStreamText('', false);
+        if (isSelection) {
+          updateCursorPosition(targetEl, originalText.substring(0, snapSelStart));
+        } else {
+          updateCursorPosition(targetEl, '');
+        }
       } else if (msg.action === 'chunk') {
         streamedText += msg.text;
         startTyping();
       } else if (msg.action === 'done') {
         streamDone = true;
-        // If typing timer isn't running (e.g. empty response), finish immediately
         if (!typingTimer) {
           hideTypingCursor();
           isPolishing = false;
@@ -461,7 +564,6 @@
           showStatus('', true);
           port.disconnect();
         }
-        // Otherwise typingTick will finish when displayedLen catches up
       } else if (msg.action === 'error') {
         stopTyping();
         hideTypingCursor();
@@ -477,7 +579,6 @@
 
     port.onDisconnect.addListener(() => {
       if (isPolishing) {
-        // Unexpected disconnect
         stopTyping();
         hideTypingCursor();
         isPolishing = false;

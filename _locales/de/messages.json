@@ -35,6 +35,9 @@
   "panelPolish": {
     "message": "Verbessern"
   },
+  "panelPolishSelection": {
+    "message": "Auswahl verbessern"
+  },
   "panelPolishing": {
     "message": "Wird verbessert..."
   },

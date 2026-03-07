@@ -1021,7 +1021,129 @@ describe('Options page — icon caching', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Suite 12: Icon detection — resolveOrgIcon regex tests
+// Suite 12: Polish selection
+// ---------------------------------------------------------------------------
+
+describe('Content script — polish selection', () => {
+  let page;
+
+  beforeEach(async () => {
+    await setStorage(worker, {
+      apiUrl: `${mockServer.url}/chat/completions`,
+      apiKey: 'test-key-123',
+      model: 'test-model',
+    });
+    page = await createTestPage(browser, mockServer.url);
+  });
+
+  afterEach(async () => {
+    if (page && !page.isClosed()) await page.close();
+  });
+
+  test('Button text changes when text is selected vs not selected', async () => {
+    await page.click('#testTextarea');
+    await page.type('#testTextarea', 'Hello world test');
+
+    // No selection first
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+    await page.hover('.aip-btn');
+    await page.waitForSelector('.aip-panel.aip-visible', { timeout: 3000 });
+    const normalText = await page.$eval('.aip-polish-btn span', (el) => el.textContent);
+
+    // Hide panel
+    await page.mouse.move(0, 0);
+    await new Promise((r) => setTimeout(r, 300));
+
+    // Select "world" (chars 6-11)
+    await page.evaluate(() => {
+      const ta = document.getElementById('testTextarea');
+      ta.focus();
+      ta.selectionStart = 6;
+      ta.selectionEnd = 11;
+    });
+
+    await page.hover('.aip-btn');
+    await page.waitForSelector('.aip-panel.aip-visible', { timeout: 3000 });
+    const selectionText = await page.$eval('.aip-polish-btn span', (el) => el.textContent);
+
+    // Button text should differ between normal and selection mode
+    expect(selectionText).not.toBe(normalText);
+  });
+
+  test('Selection polish replaces only selected text', async () => {
+    await page.click('#testTextarea');
+    await page.type('#testTextarea', 'AAA BBB CCC');
+
+    // Select "BBB" (chars 4-7)
+    await page.evaluate(() => {
+      const ta = document.getElementById('testTextarea');
+      ta.selectionStart = 4;
+      ta.selectionEnd = 7;
+    });
+
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+    await page.hover('.aip-btn');
+    await page.waitForSelector('.aip-panel.aip-visible', { timeout: 3000 });
+
+    await page.hover('.aip-polish-btn');
+    await page.click('.aip-polish-btn');
+
+    // Wait for completion
+    await page.waitForSelector('.aip-undo-btn', { visible: true, timeout: 15000 });
+
+    const text = await page.$eval('#testTextarea', (el) => el.value);
+    // "BBB" should be replaced with mock server's "This is the polished text."
+    // Full result: "AAA This is the polished text. CCC"
+    expect(text).toContain('AAA ');
+    expect(text).toContain(' CCC');
+    expect(text).toContain('This is the polished text.');
+    expect(text).not.toContain('BBB');
+  });
+
+  test('Undo restores full original text after selection polish', async () => {
+    const original = 'AAA BBB CCC';
+    await page.click('#testTextarea');
+    await page.type('#testTextarea', original);
+
+    // Select "BBB"
+    await page.evaluate(() => {
+      const ta = document.getElementById('testTextarea');
+      ta.selectionStart = 4;
+      ta.selectionEnd = 7;
+    });
+
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+    await page.hover('.aip-btn');
+    await page.waitForSelector('.aip-panel.aip-visible', { timeout: 3000 });
+    await page.hover('.aip-polish-btn');
+    await page.click('.aip-polish-btn');
+    await page.waitForSelector('.aip-undo-btn', { visible: true, timeout: 15000 });
+
+    // Click undo
+    await page.click('.aip-undo-btn');
+
+    const text = await page.$eval('#testTextarea', (el) => el.value);
+    expect(text).toBe(original);
+  });
+
+  test('Full text polish still works when nothing is selected', async () => {
+    await page.click('#testTextarea');
+    await page.type('#testTextarea', 'Full text here');
+
+    await page.waitForSelector('.aip-btn', { visible: true, timeout: 5000 });
+    await page.hover('.aip-btn');
+    await page.waitForSelector('.aip-panel.aip-visible', { timeout: 3000 });
+    await page.hover('.aip-polish-btn');
+    await page.click('.aip-polish-btn');
+    await page.waitForSelector('.aip-undo-btn', { visible: true, timeout: 15000 });
+
+    const text = await page.$eval('#testTextarea', (el) => el.value);
+    expect(text).toBe('This is the polished text.');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 13: Icon detection — resolveOrgIcon regex tests
 // ---------------------------------------------------------------------------
 
 describe('Icon detection — resolveOrgIcon', () => {

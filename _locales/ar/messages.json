@@ -35,6 +35,9 @@
   "panelPolish": {
     "message": "تحسين"
   },
+  "panelPolishSelection": {
+    "message": "تحسين المحدد"
+  },
   "panelPolishing": {
     "message": "جارٍ التحسين..."
   },
